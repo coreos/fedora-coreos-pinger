@@ -28,12 +28,18 @@ quick_main!(run);
 
 #[derive(Debug, Deserialize)]
 pub struct ConfigFragment {
-    pub metrics: Option<MetricsFragment>,
+    pub collecting: CollectingFragment,
+    pub reporting: ReportingFragment,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct MetricsFragment {
-    pub level: Option<String>,
+pub struct CollectingFragment {
+    pub level: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReportingFragment {
+    pub enabled: bool,
 }
 
 /// Parse the metrics.level key from CONFIG_FILE_PATH, and check that the key
@@ -49,13 +55,19 @@ fn run() -> Result<()> {
         .chain_err(|| "failed to read config file")?;
     let config: ConfigFragment =
         toml::from_slice(&content)
-        .chain_err(||"failed to parse TOML")?;
+        .chain_err(|| "failed to parse TOML")?;
 
-    let metrics_level = config.metrics.unwrap().level.unwrap();
+    let reporting_enabled = config.reporting.enabled;
+    if reporting_enabled {
+        info!("Metrics reporting enabled.");
 
-    match metrics_level.as_str() {
-        "off" | "minimal" | "full" => info!("Metrics collection set at level '{}'.", metrics_level),
-        _ => return Err(errors::ErrorKind::InvalidMetricsLevel(metrics_level).into()),
+        let collecting_level = config.collecting.level;
+        match collecting_level.as_str() {
+            "minimal" | "full" => info!("Metrics collection set at level '{}'.", collecting_level),
+            _ => return Err(errors::ErrorKind::InvalidMetricsLevel(collecting_level).into()),
+        }
+    } else {
+        info!("Metrics reporting disabled.");
     }
 
     Ok(())
