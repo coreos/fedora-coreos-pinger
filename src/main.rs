@@ -25,6 +25,9 @@ use errors::*;
 
 quick_main!(run);
 
+/// Parse the metrics.level key from CONFIG_FILE_PATH, and check that the key
+/// is set to one of the accepted telemetry levels. If not an accepted level,
+/// or in case of other error, return non-zero.
 fn run() -> Result<()> {
     let config_file = KeyFile::new();
     config_file.load_from_file(CONFIG_FILE_PATH, KeyFileFlags::NONE)
