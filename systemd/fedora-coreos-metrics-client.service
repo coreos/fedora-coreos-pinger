@@ -1,5 +1,5 @@
 [Unit]
-Description=Metrics collection agent (client-side) for Fedora CoreOS
+Description=Metrics collection client for Fedora CoreOS
 Before=systemd-user-sessions.service
 Wants=network-online.target
 After=network-online.target
