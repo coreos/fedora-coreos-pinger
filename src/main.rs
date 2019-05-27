@@ -17,8 +17,6 @@ use errors::*;
 use serde::Deserialize;
 use std::io::Read;
 
-quick_main!(run);
-
 #[derive(Debug, Deserialize)]
 pub struct ConfigFragment {
     pub collecting: CollectingFragment,
@@ -35,8 +33,10 @@ pub struct ReportingFragment {
     pub enabled: bool,
 }
 
-/// Parse the metrics.level key from CONFIG_FILE_PATH, and check that the key
-/// is set to one of the accepted telemetry levels. If not an accepted level,
+quick_main!(run);
+
+/// Parse the reporting.enabled and collecting.level keys from config fragments,
+/// and check that the keys are set to a valid telemetry setting. If not,
 /// or in case of other error, return non-zero.
 fn run() -> Result<()> {
     let fp = std::fs::File::open(CONFIG_FILE_PATH)
