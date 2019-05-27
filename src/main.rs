@@ -10,14 +10,7 @@ extern crate toml;
 const CONFIG_FILE_PATH: &str = "/etc/fedora-coreos-metrics/client.conf";
 
 mod errors {
-    error_chain!{
-        errors {
-            InvalidMetricsLevel(p: String) {
-                description("invalid metrics collection level")
-                display("invalid metrics collection level '{}'", p)
-            }
-        }
-    }
+    error_chain!{}
 }
 
 use errors::*;
@@ -64,7 +57,7 @@ fn run() -> Result<()> {
         let collecting_level = config.collecting.level;
         match collecting_level.as_str() {
             "minimal" | "full" => info!("Metrics collection set at level '{}'.", collecting_level),
-            _ => return Err(errors::ErrorKind::InvalidMetricsLevel(collecting_level).into()),
+            _ => bail!("invalid metrics collection level '{}'", collecting_level),
         }
     } else {
         info!("Metrics reporting disabled.");
