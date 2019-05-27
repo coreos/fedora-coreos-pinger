@@ -1,8 +1,14 @@
 [package]
 name = "fedora-coreos-metrics-client"
 version = "0.1.0"
-authors = ["rfairley"]
+authors = ["Robert Fairley <rfairley@redhat.com>"]
 edition = "2018"
+description = "Metrics collection client for Fedora CoreOS"
+documentation = "https://github.com/rfairley/fedora-coreos-metrics-client/blob/master/README.md"
+homepage = "https://github.com/rfairley/fedora-coreos-metrics-client"
+repository = "https://github.com/rfairley/fedora-coreos-metrics-client"
+readme = "README.md"
+license = "Apache-2.0" 
 
 [dependencies]
 error_chain = { package = "error-chain", version = "0.12.1" }
