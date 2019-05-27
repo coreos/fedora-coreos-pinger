@@ -1,0 +1,13 @@
+[Unit]
+Description=Metrics collection agent (client-side) for Fedora CoreOS
+Before=systemd-user-sessions.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/fedora-coreos-metrics-client
+
+[Install]
+WantedBy=multi-user.target

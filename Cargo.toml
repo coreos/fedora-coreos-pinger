@@ -1,0 +1,10 @@
+[package]
+name = "fedora-coreos-metrics-client"
+version = "0.1.0"
+authors = ["rfairley"]
+edition = "2018"
+
+[dependencies]
+error_chain = { package = "error-chain", version = "0.12.1" }
+glib = "0.7.1"
+log = "0.4.6"
