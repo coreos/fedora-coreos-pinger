@@ -2,11 +2,10 @@
 
 #[macro_use]
 extern crate error_chain;
-extern crate glib;
 #[macro_use]
 extern crate log;
-
-use glib::{KeyFile, KeyFileFlags};
+extern crate serde;
+extern crate toml;
 
 const CONFIG_FILE_PATH: &str = "/etc/fedora-coreos-metrics/client.conf";
 
@@ -22,20 +21,37 @@ mod errors {
 }
 
 use errors::*;
+use serde::Deserialize;
+use std::io::Read;
 
 quick_main!(run);
+
+#[derive(Debug, Deserialize)]
+pub struct ConfigFragment {
+    pub metrics: Option<MetricsFragment>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MetricsFragment {
+    pub level: Option<String>,
+}
 
 /// Parse the metrics.level key from CONFIG_FILE_PATH, and check that the key
 /// is set to one of the accepted telemetry levels. If not an accepted level,
 /// or in case of other error, return non-zero.
 fn run() -> Result<()> {
-    let config_file = KeyFile::new();
-    config_file.load_from_file(CONFIG_FILE_PATH, KeyFileFlags::NONE)
-               .chain_err(|| "Unable to open config file")?;
+    let fp = std::fs::File::open(CONFIG_FILE_PATH)
+        .chain_err(|| "failed to open config file")?;
+    let mut bufrd = std::io::BufReader::new(fp);
+    let mut content = vec![];
+    bufrd
+        .read_to_end(&mut content)
+        .chain_err(|| "failed to read config file")?;
+    let config: ConfigFragment =
+        toml::from_slice(&content)
+        .chain_err(||"failed to parse TOML")?;
 
-    let metrics_level = config_file.get_string("metrics", "level")
-                                   .chain_err(|| "Unable to get metrics.level field")?
-                                   .to_string();
+    let metrics_level = config.metrics.unwrap().level.unwrap();
 
     match metrics_level.as_str() {
         "off" | "minimal" | "full" => info!("Metrics collection set at level '{}'.", metrics_level),

@@ -12,5 +12,6 @@ license = "Apache-2.0"
 
 [dependencies]
 error_chain = { package = "error-chain", version = "0.12.1" }
-glib = "0.7.1"
 log = "0.4.6"
+serde = { version = "1.0.91", features = ["derive"] }
+toml = "0.5.1"
