@@ -10,6 +10,40 @@ extern crate toml;
 
 use failure::{Fallible,ResultExt};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::Path;
+
+fn add_snippets_to_tree(dir: &Path, tree: &mut BTreeMap<String, ConfigFragment>) -> Fallible<()> {
+    use std::io::Read;
+    if dir.is_dir() {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            debug!("found fragment '{}'", path.display());
+
+            if !path.is_dir() && path.extension().unwrap() == "toml" {
+                let fp = std::fs::File::open(&path)
+                    .context(format!("failed to open file '{}'", path.display()))?;
+                let mut bufrd = std::io::BufReader::new(fp);
+                let mut content = vec![];
+                bufrd
+                    .read_to_end(&mut content)
+                    .context(format!("failed to read content of '{}'", path.display()))?;
+                let frag: ConfigFragment =
+                    toml::from_slice(&content).context("failed to parse TOML")?;
+
+                let key = String::from(path.file_name().unwrap().to_str().unwrap());
+                if !tree.contains_key(&key) {
+                    debug!("adding fragment with filename '{}' to config", key);
+                    tree.insert(key, frag);
+                }
+            }
+        }
+    }
+    Ok(())
+}
 
 #[derive(Debug, Serialize)]
 pub struct ConfigInput {
@@ -20,30 +54,13 @@ pub struct ConfigInput {
 impl ConfigInput {
     /// Read config fragments and merge them into a single config.
     pub fn read_configs(dirs: &[&str], app_name: &str) -> Fallible<Self> {
-        use std::io::Read;
-
-        let mut fragments = Vec::new();
+        let mut fragments = BTreeMap::new();
         for prefix in dirs {
-            let dir = format!("{}/{}/config.d", prefix, app_name);
-            debug!("scanning configuration directory '{}'", dir);
+            let dir = String::from(format!("{}/{}/config.d", prefix, app_name));
+            let dir = Path::new(&dir);
+            debug!("scanning configuration directory '{}'", dir.display());
 
-            let wildcard = format!("{}/*.toml", dir);
-            let toml_files = glob::glob(&wildcard)?;
-            for fpath in toml_files.filter_map(Result::ok) {
-                trace!("reading config fragment '{}'", fpath.display());
-
-                let fp = std::fs::File::open(&fpath)
-                    .context(format!("failed to open file '{}'", fpath.display()))?;
-                let mut bufrd = std::io::BufReader::new(fp);
-                let mut content = vec![];
-                bufrd
-                    .read_to_end(&mut content)
-                    .context(format!("failed to read content of '{}'", fpath.display()))?;
-                let frag: ConfigFragment =
-                    toml::from_slice(&content).context("failed to parse TOML")?;
-
-                fragments.push(frag);
-            }
+            add_snippets_to_tree(dir, &mut fragments)?;
         }
 
         let cfg = Self::merge_fragments(fragments);
@@ -51,13 +68,13 @@ impl ConfigInput {
     }
 
     /// Merge multiple fragments into a single configuration.
-    fn merge_fragments(fragments: Vec<ConfigFragment>) -> Self {
+    fn merge_fragments(fragments: BTreeMap<String, ConfigFragment>) -> Self {
         let mut collecting_configs = vec![];
         let mut reporting_configs = vec![];
 
-        for snip in fragments {
-            collecting_configs.push(snip.collecting);
-            reporting_configs.push(snip.reporting);
+        for (_snip, config) in fragments {
+            collecting_configs.push(config.collecting);
+            reporting_configs.push(config.reporting);
         }
 
         Self {
@@ -142,7 +159,7 @@ fn check_metrics_config(config: ConfigInput) -> Fallible<()> {
 }
 
 fn main() -> Fallible<()> {
-    let dirs = vec!["/usr/lib", "/run", "/etc"];
+    let dirs = vec!["/etc", "/run", "/usr/lib"];
     // TODO(rfairley): get "fedora-coreos-metrics-client" using crate_name! macro.
     let config = ConfigInput::read_configs(&dirs, "fedora-coreos-metrics-client")?;
 
