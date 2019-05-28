@@ -124,11 +124,7 @@ pub struct ReportingFragment {
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
 /// and check that the keys are set to a valid telemetry setting. If not,
 /// or in case of other error, return non-zero.
-fn main() -> Fallible<()> {
-    let dirs = vec!["/usr/lib", "/run", "/etc"];
-    // TODO(rfairley): get "fedora-coreos-metrics-client" using crate_name! macro.
-    let config = ConfigInput::read_configs(&dirs, "fedora-coreos-metrics-client")?;
-
+fn check_metrics_config(config: ConfigInput) -> Fallible<()> {
     let reporting_enabled = config.reporting.enabled;
     if reporting_enabled {
         info!("Metrics reporting enabled.");
@@ -141,6 +137,16 @@ fn main() -> Fallible<()> {
     } else {
         info!("Metrics reporting disabled.");
     }
+
+    Ok(())
+}
+
+fn main() -> Fallible<()> {
+    let dirs = vec!["/usr/lib", "/run", "/etc"];
+    // TODO(rfairley): get "fedora-coreos-metrics-client" using crate_name! macro.
+    let config = ConfigInput::read_configs(&dirs, "fedora-coreos-metrics-client")?;
+
+    check_metrics_config(config)?;
 
     Ok(())
 }
