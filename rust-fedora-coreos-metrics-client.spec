@@ -53,7 +53,7 @@ Summary:        %{summary}
 %install
 %cargo_install
 %{__install} -Dpm0644 -t %{buildroot}%{_unitdir} \
-  systemd/*.service
+  dist/systemd/*.service
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{crate}
 %{__mkdir_p} %{buildroot}/run/%{crate}
 %{__mkdir_p} %{buildroot}%{_prefix}/lib/%{crate}
