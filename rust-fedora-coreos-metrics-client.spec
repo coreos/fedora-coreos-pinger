@@ -16,9 +16,12 @@ Source:         %{crates_source}
 ExclusiveArch:  %{rust_arches}
 
 BuildRequires:  rust-packaging
-BuildRequires:  (crate(error-chain/default) >= 0.12.1 with crate(error-chain/default) < 0.13.0)
-BuildRequires:  (crate(glib/default) >= 0.7.1 with crate(glib/default) < 0.8.0)
+BuildRequires:  (crate(failure/default) >= 0.1.5 with crate(failure/default) < 0.2.0)
+BuildRequires:  (crate(glob/default) >= 0.3.0 with crate(glob/default) < 0.4.0)
 BuildRequires:  (crate(log/default) >= 0.4.6 with crate(log/default) < 0.5.0)
+BuildRequires:  (crate(serde/default) >= 1.0.91 with crate(serde/default) < 2.0.0)
+BuildRequires:  (crate(serde/derive) >= 1.0.91 with crate(serde/derive) < 2.0.0)
+BuildRequires:  (crate(toml/default) >= 0.5.1 with crate(toml/default) < 0.6.0)
 
 %global _description \
 Metrics collection client for Fedora CoreOS
@@ -31,12 +34,8 @@ Summary:        %{summary}
 %description -n %{crate} %{_description}
 
 %files       -n %{crate}
-%license LICENSE
 %doc README.md
 %{_bindir}/fedora-coreos-metrics-client
-%{_unitdir}/fedora-coreos-metrics-client.service
-%dir %{_sysconfdir}/fedora-coreos-metrics
-%config(noreplace) %{_sysconfdir}/fedora-coreos-metrics/client.conf
 
 %prep
 %autosetup -n %{crate}-%{version_no_tilde} -p1
@@ -47,11 +46,6 @@ Summary:        %{summary}
 
 %install
 %cargo_install
-%{__install} -Dpm0644 -t %{buildroot}%{_unitdir} \
-  systemd/*.service
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/fedora-coreos-metrics
-%{__install} -Dpm0644 -t %{buildroot}%{_sysconfdir}/fedora-coreos-metrics \
-  dist/client.conf
 
 %if %{with check}
 %check
@@ -59,5 +53,5 @@ Summary:        %{summary}
 %endif
 
 %changelog
-* Mon May 27 04:39:42 UTC 2019 Robert Fairley <rfairley@redhat.com> - 0.1.0-1
+* Tue May 28 04:36:46 UTC 2019 Robert Fairley <rfairley@redhat.com> - 0.1.0-1
 - Initial package
