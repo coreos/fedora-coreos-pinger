@@ -13,16 +13,19 @@ use serde::{Deserialize, Serialize};
 use std::collections;
 use std::{fs, path};
 
-fn add_snippets_to_tree(dir: &path::PathBuf, tree: &mut collections::BTreeMap<String, path::PathBuf>) -> failure::Fallible<()> {
+fn add_snippets_to_tree(
+    dir: &path::PathBuf,
+    tree: &mut collections::BTreeMap<String,
+    path::PathBuf>
+) -> failure::Fallible<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
-
             debug!("found fragment '{}'", path.display());
 
             if !path.is_dir() && path.extension().unwrap() == "toml" {
-                let key = String::from(path.file_name().unwrap().to_str().unwrap());
+                let key = path.file_name().unwrap().to_str().unwrap().to_owned();
                 if !tree.contains_key(&key) {
                     debug!("adding fragment with filename '{}' to config", key);
                     tree.insert(key, path);
@@ -41,7 +44,10 @@ pub struct ConfigInput {
 
 impl ConfigInput {
     /// Read config fragments and merge them into a single config.
-    pub fn read_configs(dirs: &[path::PathBuf], app_name: &str) -> failure::Fallible<Self> {
+    pub fn read_configs(
+        dirs: &[path::PathBuf],
+        app_name: &str
+    ) -> failure::Fallible<Self> {
         let mut fragments = collections::BTreeMap::new();
         for prefix in dirs {
             let dir = path::PathBuf::from(format!("{}/{}/config.d", prefix.as_path().display(), app_name));
@@ -55,7 +61,10 @@ impl ConfigInput {
     }
 
     /// Merge multiple fragments into a single configuration.
-    fn merge_fragments(fragments: collections::BTreeMap<String, path::PathBuf>) -> failure::Fallible<Self> {
+    fn merge_fragments(
+        fragments: collections::BTreeMap<String,
+        path::PathBuf>
+    ) -> failure::Fallible<Self> {
         use std::io::Read;
         let mut collecting_configs = vec![];
         let mut reporting_configs = vec![];
