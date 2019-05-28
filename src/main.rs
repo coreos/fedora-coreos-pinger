@@ -8,12 +8,12 @@ extern crate log;
 extern crate serde;
 extern crate toml;
 
-use failure::{Fallible,ResultExt};
+use failure::{ResultExt};
 use serde::{Deserialize, Serialize};
 use std::collections;
 use std::{fs, path};
 
-fn add_snippets_to_tree(dir: &path::PathBuf, tree: &mut collections::BTreeMap<String, path::PathBuf>) -> Fallible<()> {
+fn add_snippets_to_tree(dir: &path::PathBuf, tree: &mut collections::BTreeMap<String, path::PathBuf>) -> failure::Fallible<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
@@ -41,7 +41,7 @@ pub struct ConfigInput {
 
 impl ConfigInput {
     /// Read config fragments and merge them into a single config.
-    pub fn read_configs(dirs: &[path::PathBuf], app_name: &str) -> Fallible<Self> {
+    pub fn read_configs(dirs: &[path::PathBuf], app_name: &str) -> failure::Fallible<Self> {
         let mut fragments = collections::BTreeMap::new();
         for prefix in dirs {
             let dir = path::PathBuf::from(format!("{}/{}/config.d", prefix.as_path().display(), app_name));
@@ -55,7 +55,7 @@ impl ConfigInput {
     }
 
     /// Merge multiple fragments into a single configuration.
-    fn merge_fragments(fragments: collections::BTreeMap<String, path::PathBuf>) -> Fallible<Self> {
+    fn merge_fragments(fragments: collections::BTreeMap<String, path::PathBuf>) -> failure::Fallible<Self> {
         use std::io::Read;
         let mut collecting_configs = vec![];
         let mut reporting_configs = vec![];
@@ -140,7 +140,7 @@ pub struct ReportingFragment {
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
 /// and check that the keys are set to a valid telemetry setting. If not,
 /// or in case of other error, return non-zero.
-fn check_metrics_config(config: ConfigInput) -> Fallible<()> {
+fn check_metrics_config(config: ConfigInput) -> failure::Fallible<()> {
     let reporting_enabled = config.reporting.enabled;
     if reporting_enabled {
         info!("Metrics reporting enabled.");
@@ -157,7 +157,7 @@ fn check_metrics_config(config: ConfigInput) -> Fallible<()> {
     Ok(())
 }
 
-fn main() -> Fallible<()> {
+fn main() -> failure::Fallible<()> {
     let dirs = vec![
         path::PathBuf::from("/etc"),
         path::PathBuf::from("/run"),
