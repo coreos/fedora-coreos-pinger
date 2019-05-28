@@ -34,8 +34,14 @@ Summary:        %{summary}
 %description -n %{crate} %{_description}
 
 %files       -n %{crate}
+%license LICENSE
 %doc README.md
-%{_bindir}/fedora-coreos-metrics-client
+%{_bindir}/%{crate}
+%{_unitdir}/%{crate}.service
+%dir %{_sysconfdir}/%{crate}
+%dir /run/%{crate}
+%dir %{_prefix}/lib/%{crate}
+%{_prefix}/lib/%{crate}/0001-client.toml
 
 %prep
 %autosetup -n %{crate}-%{version_no_tilde} -p1
@@ -46,6 +52,13 @@ Summary:        %{summary}
 
 %install
 %cargo_install
+%{__install} -Dpm0644 -t %{buildroot}%{_unitdir} \
+  systemd/*.service
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{crate}
+%{__mkdir_p} %{buildroot}/run/%{crate}
+%{__mkdir_p} %{buildroot}%{_prefix}/lib/%{crate}
+%{__install} -Dpm0644 -t %{buildroot}%{_prefix}/lib/%{crate} \
+  dist/0001-client.toml
 
 %if %{with check}
 %check
