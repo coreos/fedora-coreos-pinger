@@ -10,12 +10,10 @@ extern crate toml;
 
 use failure::{Fallible,ResultExt};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::fs;
-use std::path::Path;
+use std::collections;
+use std::{fs, path};
 
-fn add_snippets_to_tree(dir: &Path, tree: &mut BTreeMap<String, ConfigFragment>) -> Fallible<()> {
-    use std::io::Read;
+fn add_snippets_to_tree(dir: &path::PathBuf, tree: &mut collections::BTreeMap<String, path::PathBuf>) -> Fallible<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
@@ -24,20 +22,10 @@ fn add_snippets_to_tree(dir: &Path, tree: &mut BTreeMap<String, ConfigFragment>)
             debug!("found fragment '{}'", path.display());
 
             if !path.is_dir() && path.extension().unwrap() == "toml" {
-                let fp = std::fs::File::open(&path)
-                    .context(format!("failed to open file '{}'", path.display()))?;
-                let mut bufrd = std::io::BufReader::new(fp);
-                let mut content = vec![];
-                bufrd
-                    .read_to_end(&mut content)
-                    .context(format!("failed to read content of '{}'", path.display()))?;
-                let frag: ConfigFragment =
-                    toml::from_slice(&content).context("failed to parse TOML")?;
-
                 let key = String::from(path.file_name().unwrap().to_str().unwrap());
                 if !tree.contains_key(&key) {
                     debug!("adding fragment with filename '{}' to config", key);
-                    tree.insert(key, frag);
+                    tree.insert(key, path);
                 }
             }
         }
@@ -53,34 +41,45 @@ pub struct ConfigInput {
 
 impl ConfigInput {
     /// Read config fragments and merge them into a single config.
-    pub fn read_configs(dirs: &[&str], app_name: &str) -> Fallible<Self> {
-        let mut fragments = BTreeMap::new();
+    pub fn read_configs(dirs: &[path::PathBuf], app_name: &str) -> Fallible<Self> {
+        let mut fragments = collections::BTreeMap::new();
         for prefix in dirs {
-            let dir = String::from(format!("{}/{}/config.d", prefix, app_name));
-            let dir = Path::new(&dir);
+            let dir = path::PathBuf::from(format!("{}/{}/config.d", prefix.as_path().display(), app_name));
             debug!("scanning configuration directory '{}'", dir.display());
 
-            add_snippets_to_tree(dir, &mut fragments)?;
+            add_snippets_to_tree(&dir, &mut fragments)?;
         }
 
-        let cfg = Self::merge_fragments(fragments);
+        let cfg = Self::merge_fragments(fragments)?;
         Ok(cfg)
     }
 
     /// Merge multiple fragments into a single configuration.
-    fn merge_fragments(fragments: BTreeMap<String, ConfigFragment>) -> Self {
+    fn merge_fragments(fragments: collections::BTreeMap<String, path::PathBuf>) -> Fallible<Self> {
+        use std::io::Read;
         let mut collecting_configs = vec![];
         let mut reporting_configs = vec![];
 
-        for (_snip, config) in fragments {
+        for (_snip, path) in fragments {
+            let fp = std::fs::File::open(&path)
+                .context(format!("failed to open file '{}'", path.display()))?;
+            let mut bufrd = std::io::BufReader::new(fp);
+            let mut content = vec![];
+            bufrd
+                .read_to_end(&mut content)
+                .context(format!("failed to read content of '{}'", path.display()))?;
+            let config: ConfigFragment =
+                toml::from_slice(&content).context("failed to parse TOML")?;
+
             collecting_configs.push(config.collecting);
             reporting_configs.push(config.reporting);
         }
 
-        Self {
+        let cfg = Self {
             collecting: CollectingInput::from_fragments(collecting_configs),
             reporting: ReportingInput::from_fragments(reporting_configs),
-        }
+        };
+        Ok(cfg)
     }
 }
 
@@ -159,7 +158,11 @@ fn check_metrics_config(config: ConfigInput) -> Fallible<()> {
 }
 
 fn main() -> Fallible<()> {
-    let dirs = vec!["/etc", "/run", "/usr/lib"];
+    let dirs = vec![
+        path::PathBuf::from("/etc"),
+        path::PathBuf::from("/run"),
+        path::PathBuf::from("/usr/lib"),
+    ];
     // TODO(rfairley): get "fedora-coreos-metrics-client" using crate_name! macro.
     let config = ConfigInput::read_configs(&dirs, "fedora-coreos-metrics-client")?;
 
