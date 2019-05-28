@@ -11,8 +11,8 @@ readme = "README.md"
 license = "Apache-2.0"
 
 [dependencies]
-failure = "0.1.5"
-glob = "0.3.0"
-log = "0.4.6"
-serde = { version = "1.0.91", features = ["derive"] }
-toml = "0.5.1"
+failure = "^0.1.5"
+glob = "^0.3.0"
+log = "^0.4.6"
+serde = { version = "^1.0.91", features = ["derive"] }
+toml = "^0.5.1"
