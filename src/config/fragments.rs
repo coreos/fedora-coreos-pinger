@@ -1,18 +1,25 @@
+//! TOML configuration fragments.
+
 use serde::Deserialize;
 
+/// Metrics client config.
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct ConfigFragment {
     pub(crate) collecting: CollectingFragment,
     pub(crate) reporting: ReportingFragment,
 }
 
+/// Collecting config group.
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct CollectingFragment {
+    /// Metrics collection level, may be `"minimal"` or `"full"` (required).
     pub(crate) level: String,
 }
 
+/// Reporting config group.
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct ReportingFragment {
+    /// Metrics reporting enablement flag (required).
     pub(crate) enabled: bool,
 }
 

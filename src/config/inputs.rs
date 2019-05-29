@@ -1,3 +1,6 @@
+//! Configuration input (reading snippets from filesystem and merging).
+/// Modified source from zincati: https://github.com/coreos/zincati/blob/60f3a9144b34ebfa7f7a0fe98f8d641a760ee8f0/src/config/inputs.rs.
+
 use crate::config::fragments;
 
 use failure::ResultExt;
@@ -5,6 +8,7 @@ use log::debug;
 use serde::Serialize;
 use std::{collections, fs, path};
 
+/// Read dir and add file (name, path) keys to tree.
 fn add_snippets_to_tree(
     dir: &path::PathBuf,
     tree: &mut collections::BTreeMap<String, path::PathBuf>
@@ -89,6 +93,7 @@ pub(crate) struct CollectingInput {
 }
 
 impl CollectingInput {
+    /// Convert fragments into input config for collecting group.
     fn from_fragments(fragments: Vec<fragments::CollectingFragment>) -> Self {
         let mut cfg = Self {
             level: String::new(),
@@ -108,6 +113,7 @@ pub(crate) struct ReportingInput {
 }
 
 impl ReportingInput {
+    /// Convert fragments into input config for reporting group.
     fn from_fragments(fragments: Vec<fragments::ReportingFragment>) -> Self {
         let mut cfg = Self {
             enabled: true,
