@@ -41,7 +41,7 @@ Summary:        %{summary}
 %dir %{_sysconfdir}/%{crate}
 %dir /run/%{crate}
 %dir %{_prefix}/lib/%{crate}
-%{_prefix}/lib/%{crate}/config.d/0001-client.toml
+%{_prefix}/lib/%{crate}/config.d/0000-client-default.toml
 
 %prep
 %autosetup -n %{crate}-%{version_no_tilde} -p1
@@ -58,7 +58,7 @@ Summary:        %{summary}
 %{__mkdir_p} %{buildroot}/run/%{crate}
 %{__mkdir_p} %{buildroot}%{_prefix}/lib/%{crate}
 %{__install} -Dpm0644 -t %{buildroot}%{_prefix}/lib/config.d/%{crate} \
-  dist/0001-client.toml
+  dist/0000-client-default.toml
 
 %if %{with check}
 %check
