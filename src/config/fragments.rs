@@ -5,22 +5,22 @@ use serde::Deserialize;
 /// Metrics client config.
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct ConfigFragment {
-    pub(crate) collecting: CollectingFragment,
-    pub(crate) reporting: ReportingFragment,
+    pub(crate) collecting: Option<CollectingFragment>,
+    pub(crate) reporting: Option<ReportingFragment>,
 }
 
 /// Collecting config group.
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct CollectingFragment {
-    /// Metrics collection level, may be `"minimal"` or `"full"` (required).
-    pub(crate) level: String,
+    /// Metrics collection level, may be `"minimal"` or `"full"` (default: "minimal").
+    pub(crate) level: Option<String>,
 }
 
 /// Reporting config group.
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct ReportingFragment {
     /// Metrics reporting enablement flag (required).
-    pub(crate) enabled: bool,
+    pub(crate) enabled: Option<bool>,
 }
 
 #[cfg(test)]
@@ -37,12 +37,12 @@ mod tests {
         let cfg: ConfigFragment = toml::from_slice(&content).unwrap();
 
         let expected = ConfigFragment {
-            collecting: CollectingFragment {
-                level: String::from("minimal")
-            },
-            reporting: ReportingFragment {
-                enabled: true,
-            },
+            collecting: Some(CollectingFragment {
+                level: Some("minimal".to_string()),
+            }),
+            reporting: Some(ReportingFragment {
+                enabled: Some(true),
+            }),
         };
 
         assert_eq!(cfg, expected);

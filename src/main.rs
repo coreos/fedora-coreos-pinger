@@ -9,8 +9,7 @@ use std::path;
 /// and check that the keys are set to a valid telemetry setting. If not,
 /// or in case of other error, return non-zero.
 fn check_metrics_config(config: inputs::ConfigInput) -> failure::Fallible<()> {
-    let reporting_enabled = config.reporting.enabled;
-    if reporting_enabled {
+    if config.reporting.enabled.unwrap() {
         info!("Metrics reporting enabled.");
 
         let collecting_level = config.collecting.level;
