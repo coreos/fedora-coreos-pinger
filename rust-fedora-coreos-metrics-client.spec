@@ -57,7 +57,7 @@ Summary:        %{summary}
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/%{crate}
 %{__mkdir_p} %{buildroot}/run/%{crate}
 %{__mkdir_p} %{buildroot}%{_prefix}/lib/%{crate}
-%{__install} -Dpm0644 -t %{buildroot}%{_prefix}/lib/config.d/%{crate} \
+%{__install} -Dpm0644 -t %{buildroot}%{_prefix}/lib/%{crate}/config.d \
   dist/0000-client-default.toml
 
 %if %{with check}
