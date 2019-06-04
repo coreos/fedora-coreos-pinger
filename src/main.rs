@@ -25,6 +25,14 @@ fn check_metrics_config(config: inputs::ConfigInput) -> failure::Fallible<()> {
 }
 
 fn main() -> failure::Fallible<()> {
+    env_logger::Builder::from_default_env()
+        .default_format_timestamp(false)
+        .default_format_module_path(false)
+        .default_format_level(false)
+        // TODO(rfairley): Make log level a CLI option.
+        .filter(None, log::LevelFilter::Info)
+        .try_init()?;
+
     let dirs = vec![
         path::PathBuf::from("/etc"),
         path::PathBuf::from("/run"),
