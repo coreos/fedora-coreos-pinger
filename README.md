@@ -36,8 +36,10 @@ files of the same name in `/usr/lib/fedora-coreos-metrics-client/config.d/`.
 Config files are read in alphanumeric order; config files ordered later
 override config files ordered earlier.
 
-By default, metrics reporting is enabled, and the level of information
-collected is set to `minimal`. An example of the default config is as follows:
+The metrics reporting `enabled` flag must be explicitly set by a config file.
+If not specified, the service will exit with error. If metrics reporting is
+enabled, then by default the level of information collected is set to
+`"minimal"`. An example of the default config is as follows:
 
 ```TOML
 # /usr/lib/fedora-coreos-metrics-client/config.d/0000-client-default.toml
@@ -48,7 +50,7 @@ collected is set to `minimal`. An example of the default config is as follows:
 level = "minimal"
 
 [reporting]
-# Default reporting.enabled is `true`. May be set to `true` or `false`.
+# Required. May be set to `true` or `false`.
 enabled = true
 
 ```
@@ -58,9 +60,6 @@ dropped at e.g.
 `/etc/fedora-coreos-metrics-client/config.d/9000-client-disable-reporting.toml`.
 
 ```TOML
-[collecting]
-level = "minimal"
-
 [reporting]
 enabled = false
 

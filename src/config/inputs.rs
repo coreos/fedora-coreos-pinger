@@ -3,7 +3,7 @@
 
 use crate::config::fragments;
 
-use failure::ResultExt;
+use failure::{bail, ResultExt};
 use log::debug;
 use serde::Serialize;
 use std::{collections, fs, path};
@@ -52,6 +52,9 @@ impl ConfigInput {
         }
 
         let cfg = Self::merge_fragments(fragments)?;
+
+        cfg.validate_input()?;
+
         Ok(cfg)
     }
 
@@ -75,15 +78,30 @@ impl ConfigInput {
             let config: fragments::ConfigFragment =
                 toml::from_slice(&content).context("failed to parse TOML")?;
 
-            collecting_configs.push(config.collecting);
-            reporting_configs.push(config.reporting);
+            if let Some(c) = config.collecting {
+                collecting_configs.push(c);
+            }
+            if let Some(r) = config.reporting {
+                reporting_configs.push(r)
+            }
         }
 
         let cfg = Self {
             collecting: CollectingInput::from_fragments(collecting_configs),
             reporting: ReportingInput::from_fragments(reporting_configs),
         };
+
         Ok(cfg)
+    }
+
+    fn validate_input(
+        &self
+    ) -> failure::Fallible<()> {
+        if self.reporting.enabled == None {
+            bail!("Required configuration key `reporting.enabled` not specified.");
+        }
+
+        Ok(())
     }
 }
 
@@ -96,11 +114,14 @@ impl CollectingInput {
     /// Convert fragments into input config for collecting group.
     fn from_fragments(fragments: Vec<fragments::CollectingFragment>) -> Self {
         let mut cfg = Self {
-            level: String::new(),
+            // Default collecting level is `"minimal"`.
+            level: String::from("minimal"),
         };
 
         for snip in fragments {
-            cfg.level = snip.level;
+            if let Some(l) = snip.level {
+                cfg.level = l;
+            }
         }
 
         cfg
@@ -109,17 +130,19 @@ impl CollectingInput {
 
 #[derive(Debug, Serialize)]
 pub(crate) struct ReportingInput {
-    pub(crate) enabled: bool,
+    pub(crate) enabled: Option<bool>,
 }
 
 impl ReportingInput {
     /// Convert fragments into input config for reporting group.
     fn from_fragments(fragments: Vec<fragments::ReportingFragment>) -> Self {
         let mut cfg = Self {
-            enabled: true,
+            enabled: None,
         };
 
         for snip in fragments {
+            /* Option is directly passed so that the setting being given
+             * explicitly can later be validated. */
             cfg.enabled = snip.enabled;
         }
 

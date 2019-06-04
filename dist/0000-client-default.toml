@@ -5,5 +5,5 @@
 level = "minimal"
 
 [reporting]
-# Default reporting.enabled is `true`. May be set to `true` or `false`.
+# Required. May be set to `true` or `false`.
 enabled = true
