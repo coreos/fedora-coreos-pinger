@@ -39,11 +39,11 @@ Summary:        %{summary}
 %doc README.md
 %{_bindir}/fedora-coreos-metrics-client
 %license LICENSE
-%{_unitdir}/%{crate}.service
-%dir %{_sysconfdir}/%{crate}
-%dir /run/%{crate}
-%dir %{_prefix}/lib/%{crate}
-%{_prefix}/lib/%{crate}/config.d/0000-client-default.toml
+%{_unitdir}/fedora-coreos-metrics-client.service
+%dir %{_sysconfdir}/fedora-coreos-metrics-client/config.d
+%dir /run/fedora-coreos-metrics-client/config.d
+%dir %{_prefix}/lib/fedora-coreos-metrics-client/config.d
+%{_prefix}/lib/fedora-coreos-metrics-client/config.d/0000-client-default.toml
 
 %prep
 %autosetup -n %{crate}-%{version_no_tilde} -p1
@@ -56,10 +56,10 @@ Summary:        %{summary}
 %cargo_install
 %{__install} -Dpm0644 -t %{buildroot}%{_unitdir} \
   dist/systemd/*.service
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/%{crate}
-%{__mkdir_p} %{buildroot}/run/%{crate}
-%{__mkdir_p} %{buildroot}%{_prefix}/lib/%{crate}
-%{__install} -Dpm0644 -t %{buildroot}%{_prefix}/lib/%{crate}/config.d \
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/fedora-coreos-metrics-client/config.d
+%{__mkdir_p} %{buildroot}/run/fedora-coreos-metrics-client/config.d
+%{__mkdir_p} %{buildroot}%{_prefix}/lib/fedora-coreos-metrics-client/config.d
+%{__install} -Dpm0644 -t %{buildroot}%{_prefix}/lib/fedora-coreos-metrics-client/config.d \
   dist/0000-client-default.toml
 
 %if %{with check}
