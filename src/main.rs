@@ -1,8 +1,8 @@
 mod config;
 
+use clap::{app_from_crate, Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;
 use failure::bail;
-use log::info;
 use std::path;
 
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
@@ -10,27 +10,38 @@ use std::path;
 /// or in case of other error, return non-zero.
 fn check_metrics_config(config: inputs::ConfigInput) -> failure::Fallible<()> {
     if config.reporting.enabled.unwrap() {
-        info!("Metrics reporting enabled.");
+        println!("Metrics reporting enabled.");
 
         let collecting_level = config.collecting.level;
         match collecting_level.as_str() {
-            "minimal" | "full" => info!("Metrics collection set at level '{}'.", collecting_level),
+            "minimal" | "full" => println!("Metrics collection set at level '{}'.", collecting_level),
             _ => bail!("invalid metrics collection level '{}'", collecting_level),
         }
     } else {
-        info!("Metrics reporting disabled.");
+        println!("Metrics reporting disabled.");
     }
 
     Ok(())
 }
 
 fn main() -> failure::Fallible<()> {
+    let matches = app_from_crate!()
+        .arg(Arg::with_name("v")
+            .short("v")
+            .multiple(true)
+            .help("Sets log verbosity level"))
+        .get_matches();
+
+    let log_level = match matches.occurrences_of("v") {
+        0 => log::LevelFilter::Warn,
+        1 => log::LevelFilter::Info,
+        2 => log::LevelFilter::Debug,
+        3 | _ => log::LevelFilter::Trace,
+    };
     env_logger::Builder::from_default_env()
         .default_format_timestamp(false)
         .default_format_module_path(false)
-        .default_format_level(false)
-        // TODO(rfairley): Make log level a CLI option.
-        .filter(None, log::LevelFilter::Info)
+        .filter(None, log_level)
         .try_init()?;
 
     let dirs = vec![
@@ -38,8 +49,7 @@ fn main() -> failure::Fallible<()> {
         path::PathBuf::from("/run"),
         path::PathBuf::from("/usr/lib"),
     ];
-    // TODO(rfairley): get "fedora-coreos-metrics-client" using crate_name! macro.
-    let config = inputs::ConfigInput::read_configs(&dirs, "fedora-coreos-metrics-client")?;
+    let config = inputs::ConfigInput::read_configs(&dirs, crate_name!())?;
 
     check_metrics_config(config)?;
 
