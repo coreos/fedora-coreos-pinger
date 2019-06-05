@@ -3,6 +3,7 @@ mod config;
 use clap::{app_from_crate, Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;
 use failure::bail;
+use failure::ResultExt;
 use std::path;
 
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
@@ -49,7 +50,8 @@ fn main() -> failure::Fallible<()> {
         path::PathBuf::from("/run"),
         path::PathBuf::from("/usr/lib"),
     ];
-    let config = inputs::ConfigInput::read_configs(&dirs, crate_name!())?;
+    let config = inputs::ConfigInput::read_configs(&dirs, crate_name!())
+        .context("failed to read configuration input")?;
 
     check_metrics_config(config)?;
 
