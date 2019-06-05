@@ -16,6 +16,7 @@ Source:         %{crates_source}
 ExclusiveArch:  %{rust_arches}
 
 BuildRequires:  rust-packaging
+BuildRequires:  (crate(clap/default) >= 2.33.0 with crate(clap/default) < 3.0.0)
 BuildRequires:  (crate(env_logger/default) >= 0.6.1 with crate(env_logger/default) < 0.7.0)
 BuildRequires:  (crate(failure/default) >= 0.1.5 with crate(failure/default) < 0.2.0)
 BuildRequires:  (crate(glob/default) >= 0.3.0 with crate(glob/default) < 0.4.0)
@@ -35,9 +36,9 @@ Summary:        %{summary}
 %description -n %{crate} %{_description}
 
 %files       -n %{crate}
+%doc README.md
 %{_bindir}/fedora-coreos-metrics-client
 %license LICENSE
-%doc README.md
 %{_unitdir}/%{crate}.service
 %dir %{_sysconfdir}/%{crate}
 %dir /run/%{crate}
