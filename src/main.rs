@@ -1,9 +1,10 @@
 mod config;
 
-use clap::{app_from_crate, Arg, crate_authors, crate_description, crate_name, crate_version};
+use clap::{Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;
-use failure::bail;
-use failure::ResultExt;
+use failure::{bail, ResultExt};
+use log::LevelFilter;
+use path::PathBuf;
 use std::path;
 
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
@@ -26,7 +27,7 @@ fn check_metrics_config(config: inputs::ConfigInput) -> failure::Fallible<()> {
 }
 
 fn main() -> failure::Fallible<()> {
-    let matches = app_from_crate!()
+    let matches = clap::app_from_crate!()
         .arg(Arg::with_name("v")
             .short("v")
             .multiple(true)
@@ -34,10 +35,10 @@ fn main() -> failure::Fallible<()> {
         .get_matches();
 
     let log_level = match matches.occurrences_of("v") {
-        0 => log::LevelFilter::Warn,
-        1 => log::LevelFilter::Info,
-        2 => log::LevelFilter::Debug,
-        3 | _ => log::LevelFilter::Trace,
+        0 => LevelFilter::Warn,
+        1 => LevelFilter::Info,
+        2 => LevelFilter::Debug,
+        3 | _ => LevelFilter::Trace,
     };
     env_logger::Builder::from_default_env()
         .default_format_timestamp(false)
@@ -46,9 +47,9 @@ fn main() -> failure::Fallible<()> {
         .try_init()?;
 
     let dirs = vec![
-        path::PathBuf::from("/etc"),
-        path::PathBuf::from("/run"),
-        path::PathBuf::from("/usr/lib"),
+        PathBuf::from("/etc"),
+        PathBuf::from("/run"),
+        PathBuf::from("/usr/lib"),
     ];
     let config = inputs::ConfigInput::read_configs(&dirs, crate_name!())
         .context("failed to read configuration input")?;
