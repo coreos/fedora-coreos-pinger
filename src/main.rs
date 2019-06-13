@@ -4,8 +4,6 @@ use clap::{Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;
 use failure::{bail, ResultExt};
 use log::LevelFilter;
-use path::PathBuf;
-use std::path;
 
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
 /// and check that the keys are set to a valid telemetry setting. If not,
@@ -47,11 +45,11 @@ fn main() -> failure::Fallible<()> {
         .try_init()?;
 
     let dirs = vec![
-        PathBuf::from("/etc"),
-        PathBuf::from("/run"),
-        PathBuf::from("/usr/lib"),
+        String::from("/usr/lib"),
+        String::from("/run"),
+        String::from("/etc"),
     ];
-    let config = inputs::ConfigInput::read_configs(&dirs, crate_name!())
+    let config = inputs::ConfigInput::read_configs(dirs, crate_name!())
         .context("failed to read configuration input")?;
 
     check_metrics_config(config)?;
