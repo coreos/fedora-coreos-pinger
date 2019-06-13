@@ -14,7 +14,6 @@ license = "Apache-2.0"
 clap = "2.33"
 env_logger = "^0.6.1"
 failure = "^0.1.5"
-liboverdrop = { git = "https://github.com/overdrop/liboverdrop-rs", branch = "master" }
 log = "^0.4.6"
 serde = { version = "^1.0.91", features = ["derive"] }
 toml = "^0.5.1"
