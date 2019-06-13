@@ -4,32 +4,8 @@
 use crate::config::fragments;
 
 use failure::{bail, ResultExt};
-use log::debug;
 use serde::Serialize;
-use std::{collections, fs, path};
-
-/// Read dir and add file (name, path) keys to tree.
-fn add_snippets_to_tree(
-    dir: &path::PathBuf,
-    tree: &mut collections::BTreeMap<String, path::PathBuf>
-) -> failure::Fallible<()> {
-    if dir.is_dir() {
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            debug!("found fragment '{}'", path.display());
-
-            if !path.is_dir() && path.extension().unwrap() == "toml" {
-                let key = path.file_name().unwrap().to_str().unwrap().to_owned();
-                if !tree.contains_key(&key) {
-                    debug!("adding fragment with filename '{}' to config", key);
-                    tree.insert(key, path);
-                }
-            }
-        }
-    }
-    Ok(())
-}
+use std::{collections, path};
 
 #[derive(Debug, Serialize)]
 pub(crate) struct ConfigInput {
@@ -40,16 +16,16 @@ pub(crate) struct ConfigInput {
 impl ConfigInput {
     /// Read config fragments and merge them into a single config.
     pub(crate) fn read_configs(
-        dirs: &[path::PathBuf],
+        dirs: Vec<String>,
         app_name: &str
     ) -> failure::Fallible<Self> {
-        let mut fragments = collections::BTreeMap::new();
-        for prefix in dirs {
-            let dir = path::PathBuf::from(format!("{}/{}/config.d", prefix.as_path().display(), app_name));
-            debug!("scanning configuration directory '{}'", dir.display());
+        let config_path = format!("{}/config.d", app_name);
+        let allowed_extensions = vec![
+            String::from("toml"),
+        ];
+        let od_cfg = liboverdrop::FragmentScanner::new(dirs, config_path.as_str(), false, allowed_extensions);
 
-            add_snippets_to_tree(&dir, &mut fragments)?;
-        }
+        let fragments = od_cfg.scan();
 
         let cfg = Self::merge_fragments(fragments)?;
 
