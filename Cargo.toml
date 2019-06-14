@@ -9,6 +9,10 @@ homepage = "https://github.com/rfairley/fedora-coreos-metrics-client"
 repository = "https://github.com/rfairley/fedora-coreos-metrics-client"
 readme = "README.md"
 license = "Apache-2.0"
+exclude = [
+".gitignore",
+".travis.yml",
+]
 
 [dependencies]
 clap = "2.33"
