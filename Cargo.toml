@@ -18,7 +18,7 @@ exclude = [
 clap = "2.33"
 env_logger = "^0.6.1"
 failure = "^0.1.5"
-liboverdrop = "^0.0.1"
+liboverdrop = "^0.0.2"
 log = "^0.4.6"
 serde = { version = "^1.0.91", features = ["derive"] }
 toml = "^0.5.1"
