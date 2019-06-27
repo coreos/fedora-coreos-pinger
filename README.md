@@ -42,7 +42,7 @@ enabled, then by default the level of information collected is set to
 `"minimal"`. An example of the default config is as follows:
 
 ```TOML
-# /usr/lib/fedora-coreos-metrics-client/config.d/0000-client-default.toml
+# /usr/lib/fedora-coreos-metrics-client/config.d/00-client-default.toml
 # fedora-coreos-metrics client configuration
 
 [collecting]
@@ -57,7 +57,7 @@ enabled = true
 
 To disable metrics reporting, a config snippet containing the following can be
 dropped at e.g.
-`/etc/fedora-coreos-metrics-client/config.d/9000-client-disable-reporting.toml`.
+`/etc/fedora-coreos-metrics-client/config.d/99-client-disable-reporting.toml`.
 
 ```TOML
 [reporting]
