@@ -1,10 +1,13 @@
 [Unit]
-Description=Metrics collection client for Fedora CoreOS
+Description=Metrics reporting client for Fedora CoreOS
+Documentation=https://github.com/coreos/fedora-coreos-metrics-client
 Before=systemd-user-sessions.service
 Wants=network-online.target
 After=network-online.target
 
 [Service]
+User=fedora-coreos-metrics-client
+Group=fedora-coreos-metrics-client
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/bin/fedora-coreos-metrics-client
