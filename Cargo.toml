@@ -1,6 +1,6 @@
 [package]
 name = "fedora-coreos-metrics-client"
-version = "0.0.1"
+version = "0.0.2-alpha.0"
 authors = ["Robert Fairley <rfairley@redhat.com>"]
 edition = "2018"
 description = "Metrics collection client for Fedora CoreOS"
