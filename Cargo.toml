@@ -14,9 +14,6 @@ exclude = [
 ".travis.yml",
 ]
 
-[badges]
-maintenance = { status = "deprecated" }
-
 [dependencies]
 clap = "2.33"
 env_logger = "^0.6.1"
