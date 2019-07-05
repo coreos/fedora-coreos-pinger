@@ -8,17 +8,17 @@ use log::LevelFilter;
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
 /// and check that the keys are set to a valid telemetry setting. If not,
 /// or in case of other error, return non-zero.
-fn check_metrics_config(config: inputs::ConfigInput) -> failure::Fallible<()> {
+fn check_config(config: inputs::ConfigInput) -> failure::Fallible<()> {
     if config.reporting.enabled.unwrap() {
-        println!("Metrics reporting enabled.");
+        println!("Reporting enabled.");
 
         let collecting_level = config.collecting.level;
         match collecting_level.as_str() {
-            "minimal" | "full" => println!("Metrics collection set at level '{}'.", collecting_level),
-            _ => bail!("invalid metrics collection level '{}'", collecting_level),
+            "minimal" | "full" => println!("Collection set at level '{}'.", collecting_level),
+            _ => bail!("invalid collection level '{}'", collecting_level),
         }
     } else {
-        println!("Metrics reporting disabled.");
+        println!("Reporting disabled.");
     }
 
     Ok(())
@@ -52,7 +52,7 @@ fn main() -> failure::Fallible<()> {
     let config = inputs::ConfigInput::read_configs(dirs, crate_name!())
         .context("failed to read configuration input")?;
 
-    check_metrics_config(config)?;
+    check_config(config)?;
 
     Ok(())
 }
