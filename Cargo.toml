@@ -7,12 +7,15 @@ description = "Metrics collection client for Fedora CoreOS"
 documentation = "https://github.com/coreos/fedora-coreos-metrics-client"
 homepage = "https://github.com/coreos/fedora-coreos-metrics-client"
 repository = "https://github.com/coreos/fedora-coreos-metrics-client"
-readme = "README.md"
+readme = "DEPRECATED.md"
 license = "Apache-2.0"
 exclude = [
 ".gitignore",
 ".travis.yml",
 ]
+
+[badges]
+maintenance = { status = "deprecated" }
 
 [dependencies]
 clap = "2.33"
