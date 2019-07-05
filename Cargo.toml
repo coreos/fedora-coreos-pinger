@@ -1,6 +1,6 @@
 [package]
 name = "fedora-coreos-pinger"
-version = "0.0.3"
+version = "0.0.4-alpha.0"
 authors = ["Robert Fairley <rfairley@redhat.com>"]
 edition = "2018"
 description = "Telemetry service for Fedora CoreOS"
