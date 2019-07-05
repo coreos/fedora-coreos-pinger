@@ -1,13 +1,13 @@
 [package]
-name = "fedora-coreos-metrics-client"
+name = "fedora-coreos-pinger"
 version = "0.0.3-alpha.0"
 authors = ["Robert Fairley <rfairley@redhat.com>"]
 edition = "2018"
-description = "Metrics collection client for Fedora CoreOS"
-documentation = "https://github.com/coreos/fedora-coreos-metrics-client"
-homepage = "https://github.com/coreos/fedora-coreos-metrics-client"
-repository = "https://github.com/coreos/fedora-coreos-metrics-client"
-readme = "DEPRECATED.md"
+description = "Telemetry service for Fedora CoreOS"
+documentation = "https://github.com/coreos/fedora-coreos-pinger"
+homepage = "https://github.com/coreos/fedora-coreos-pinger"
+repository = "https://github.com/coreos/fedora-coreos-pinger"
+readme = "README.md"
 license = "Apache-2.0"
 exclude = [
 ".gitignore",

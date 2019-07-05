@@ -1,0 +1,16 @@
+[Unit]
+Description=Telemetry service for Fedora CoreOS
+Documentation=https://github.com/coreos/fedora-coreos-pinger
+Before=systemd-user-sessions.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=fedora-coreos-pinger
+Group=fedora-coreos-pinger
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/fedora-coreos-pinger
+
+[Install]
+WantedBy=multi-user.target
