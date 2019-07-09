@@ -45,10 +45,10 @@ override config files ordered earlier.
 The reporting `enabled` flag must be explicitly set by a config file. If not
 specified, the service will exit with error. If reporting is enabled, then by
 default the level of information collected is set to `"minimal"`. An example of
-the default config is as follows:
+a config is as follows:
 
 ```TOML
-# /usr/lib/fedora-coreos-pinger/config.d/00-default.toml
+# /usr/lib/fedora-coreos-pinger/config.d/10-default-enable.toml
 # fedora-coreos-pinger configuration
 
 [collecting]
