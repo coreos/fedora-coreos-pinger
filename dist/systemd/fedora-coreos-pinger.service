@@ -6,8 +6,8 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-User=fedora-coreos-pinger
-Group=fedora-coreos-pinger
+User=fcos-pinger
+Group=fcos-pinger
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/bin/fedora-coreos-pinger
