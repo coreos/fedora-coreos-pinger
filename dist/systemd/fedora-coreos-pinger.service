@@ -10,7 +10,7 @@ User=fcos-pinger
 Group=fcos-pinger
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/bin/fedora-coreos-pinger
+ExecStart=/usr/libexec/fedora-coreos-pinger
 
 [Install]
 WantedBy=multi-user.target
