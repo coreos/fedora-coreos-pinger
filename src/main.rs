@@ -1,4 +1,9 @@
+//! Telemetry service for FCOS.
+
+/// Collect config from files.
 mod config;
+/// Agent identity.
+mod identity;
 
 use clap::{Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;
@@ -8,17 +13,26 @@ use log::LevelFilter;
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
 /// and check that the keys are set to a valid telemetry setting. If not,
 /// or in case of other error, return non-zero.
-fn check_config(config: inputs::ConfigInput) -> failure::Fallible<()> {
+fn check_config(config: &inputs::ConfigInput) -> failure::Fallible<()> {
     if config.reporting.enabled.unwrap() {
         println!("Reporting enabled.");
 
-        let collecting_level = config.collecting.level;
+        let collecting_level = &config.collecting.level;
         match collecting_level.as_str() {
             "minimal" | "full" => println!("Collection set at level '{}'.", collecting_level),
             _ => bail!("invalid collection level '{}'", collecting_level),
         }
     } else {
         println!("Reporting disabled.");
+    }
+
+    Ok(())
+}
+
+fn send_metrics(id: &identity::Identity) -> failure::Fallible<()> {
+    // TODO: Send metrics to remote endpoint
+    for (key, value) in id.get_metrics() {
+        println!("{}: {}", key, value);
     }
 
     Ok(())
@@ -52,7 +66,12 @@ fn main() -> failure::Fallible<()> {
     let config = inputs::ConfigInput::read_configs(dirs, crate_name!())
         .context("failed to read configuration input")?;
 
-    check_config(config)?;
+    check_config(&config)?;
+
+    // Collect the metrics
+    let id = identity::Identity::new(&config.collecting)?;
+    // Send to the remote endpoint
+    send_metrics(&id)?;
 
     Ok(())
 }
