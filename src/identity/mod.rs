@@ -1,4 +1,5 @@
 mod platform;
+mod os_release;
 
 use crate::config::inputs;
 use failure::{Fallible, ResultExt};
@@ -8,14 +9,18 @@ use maplit;
 
 /// Kernel arguments location
 static KERNEL_ARGS_FILE: &str = "/proc/cmdline";
+/// OS release file location
+static OS_RELEASE_FILE: &str = "/etc/os-release";
 
 /// Agent identity.
 #[derive(Debug, Serialize)]
 pub(crate) struct Identity {
     /// Collecting level
     pub(crate) level: String,
-    /// OS platform.
+    /// OS platform
     pub(crate) platform: String,
+    /// Current OS version
+    pub(crate) current_os_version: String,
 }
 
 impl Identity {
@@ -33,15 +38,18 @@ impl Identity {
     /// Try to fetch default data
     pub fn try_default(level: &str) -> Fallible<Self> {
         let platform = platform::read_id(KERNEL_ARGS_FILE)?;
+        let current_os_version = os_release::read_os_version(OS_RELEASE_FILE)?;
 
         let id = match level {
                     "minimal" | "full" => Self {
                                     level: level.to_string(),
                                     platform,
+                                    current_os_version,
                                 },
                     &_ => Self {
                                     level: "minimal".to_string(),
                                     platform,
+                                    current_os_version,
                                 },
                 };
 
@@ -53,9 +61,10 @@ impl Identity {
         let vars = maplit::hashmap!{
             "level".to_string() => self.level.clone(),
             "platform".to_string() => self.platform.clone(),
+            "current_os_version".to_string() => self.current_os_version.clone(),
         };
 
-        // Insert data specific to different levels
+        // TODO: Insert data specific to different levels
         match self.level.as_str() {
             "minimal" | "full" => (),
             &_ => (),
@@ -70,14 +79,17 @@ impl Identity {
             "minimal" => return Self {
                             level: String::from("minimal"),
                             platform: "mock-qemu".to_string(),
+                            current_os_version: "mock-os-version".to_string(),
                         },
             "full" => return Self {
                             level: String::from("full"),
                             platform: "mock-gcp".to_string(),
+                            current_os_version: "mock-os-version".to_string(),
                         },
             &_ => return Self {
                             level: String::from("minimal"),
                             platform: "mock-qemu".to_string(),
+                            current_os_version: "mock-os-version".to_string(),
                         },
         }
     }
@@ -94,6 +106,7 @@ mod tests {
 
         assert!(vars.contains_key("level"));
         assert!(vars.contains_key("platform"));
+        assert!(vars.contains_key("current_os_version"));
     }
 
     #[test]
@@ -103,5 +116,6 @@ mod tests {
 
         assert!(vars.contains_key("level"));
         assert!(vars.contains_key("platform"));
+        assert!(vars.contains_key("current_os_version"));
     }
 }

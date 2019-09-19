@@ -75,7 +75,7 @@ fn find_flag_value(flagname: &str, cmdline: &str) -> Option<String> {
 mod tests {
     use super::*;
     #[test]
-    fn test_find_flag() {
+    fn test_find_flag_platform() {
         let flagname = "ignition.platform.id";
         let tests = vec![
             ("", None),
