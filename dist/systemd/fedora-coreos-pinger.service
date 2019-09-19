@@ -6,8 +6,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-User=fcos-pinger
-Group=fcos-pinger
+DynamicUser=yes
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/libexec/fedora-coreos-pinger
