@@ -4,6 +4,7 @@ use crate::config::inputs;
 use failure::{Fallible, ResultExt};
 use serde::Serialize;
 use std::collections::HashMap;
+use maplit;
 
 /// Kernel arguments location
 static KERNEL_ARGS_FILE: &str = "/proc/cmdline";
@@ -22,9 +23,8 @@ impl Identity {
     pub(crate) fn new(cfg: &inputs::CollectingInput) -> Fallible<Self> {
         let collecting_level = &cfg.level;
         let id = match collecting_level.as_str() {
-            "minimal" => Self::try_default("minimal").context("failed to build minimal (default) identity")?,
-            "full" => Self::try_default("full").context("failed to build full identity")?,
-            &_ => Self::try_default("minimal").context("failed to build minimal (default) identity")?,
+            level @ "minimal" | level @ "full" => Self::try_default(level).context(format!("failed to build '{}' identity", level))?,
+            &_ => Self::try_default("minimal").context("failed to build 'minimal' identity")?,
         };
 
         Ok(id)
@@ -35,16 +35,12 @@ impl Identity {
         let platform = platform::read_id(KERNEL_ARGS_FILE)?;
 
         let id = match level {
-                    "minimal" => Self {
-                                    level: String::from("minimal"),
+                    "minimal" | "full" => Self {
+                                    level: level.to_string(),
                                     platform,
                                 },
-                    "full" => Self {
-                                    level: String::from("full"),
-                                    platform
-                                },
                     &_ => Self {
-                                    level: String::from("minimal"),
+                                    level: "minimal".to_string(),
                                     platform,
                                 },
                 };
@@ -52,16 +48,16 @@ impl Identity {
         Ok(id)
     }
 
-    /// Getter for collected metrics, returned as a HashMap
-    pub fn get_metrics(&self) -> HashMap<String, String> {
-        let mut vars = HashMap::new();
+    /// Getter for collected data, returned as a HashMap
+    pub fn get_data(&self) -> HashMap<String, String> {
+        let vars = maplit::hashmap!{
+            "level".to_string() => self.level.clone(),
+            "platform".to_string() => self.platform.clone(),
+        };
 
-        vars.insert("level".to_string(), self.level.clone());
-        vars.insert("platform".to_string(), self.platform.clone());
-
+        // Insert data specific to different levels
         match self.level.as_str() {
-            "minimal" => (),
-            "full" => (),
+            "minimal" | "full" => (),
             &_ => (),
         };
 
@@ -94,7 +90,7 @@ mod tests {
     #[test]
     fn test_minimal() {
         let id = Identity::mock_default("minimal");
-        let vars = id.get_metrics();
+        let vars = id.get_data();
 
         assert!(vars.contains_key("level"));
         assert!(vars.contains_key("platform"));
@@ -103,7 +99,7 @@ mod tests {
     #[test]
     fn test_full() {
         let id = Identity::mock_default("full");
-        let vars = id.get_metrics();
+        let vars = id.get_data();
 
         assert!(vars.contains_key("level"));
         assert!(vars.contains_key("platform"));

@@ -29,9 +29,9 @@ fn check_config(config: &inputs::ConfigInput) -> failure::Fallible<()> {
     Ok(())
 }
 
-fn send_metrics(id: &identity::Identity) -> failure::Fallible<()> {
-    // TODO: Send metrics to remote endpoint
-    for (key, value) in id.get_metrics() {
+fn send_data(id: &identity::Identity) -> failure::Fallible<()> {
+    // TODO: Send data to remote endpoint
+    for (key, value) in id.get_data() {
         println!("{}: {}", key, value);
     }
 
@@ -68,10 +68,10 @@ fn main() -> failure::Fallible<()> {
 
     check_config(&config)?;
 
-    // Collect the metrics
+    // Collect the data
     let id = identity::Identity::new(&config.collecting)?;
     // Send to the remote endpoint
-    send_metrics(&id)?;
+    send_data(&id)?;
 
     Ok(())
 }
