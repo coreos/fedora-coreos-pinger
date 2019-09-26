@@ -15,15 +15,25 @@ exclude = [
 ]
 
 [dependencies]
+base64 = "^0.10.1"
 clap = "2.33"
 env_logger = "^0.6.1"
+error-chain = { version = "0.12", default-features = false }
 failure = "^0.1.5"
 liboverdrop = "^0.0.2"
 log = "^0.4.6"
-serde = { version = "^1.0.91", features = ["derive"] }
-toml = "^0.5.1"
 maplit = "^1.0"
+openssh-keys = "^0.4.1"
+openssl = "^0.10.24"
+reqwest = "^0.9.19"
+serde = { version = "^1.0.91", features = ["derive"] }
+serde_derive = "1.0"
 serde_json = "1.0.40"
+serde-xml-rs = "0.3"
+slog-async = "2.1"
+slog-scope = "~4.1"
+slog-term = "2.4"
+toml = "^0.5.1"
 
 [package.metadata.release]
 sign-commit = true
@@ -34,3 +44,10 @@ pre-release-commit-message = "cargo: Fedora CoreOS Pinger release {{version}}"
 pro-release-commit-message = "cargo: development version bump"
 tag-message = "Fedora CoreOS Pinger v{{version}}"
 tag-prefix = "v"
+
+[dependencies.slog]
+version = "2.5"
+features = ["max_level_trace", "release_max_level_info"]
+
+[dev-dependencies]
+mockito = "^0.17.1"

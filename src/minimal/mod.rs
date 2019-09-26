@@ -2,6 +2,7 @@ mod platform;
 mod os_release;
 
 use crate::config::inputs;
+use crate::errors::*;
 use failure::{Fallible, ResultExt};
 use serde::Serialize;
 use std::collections::HashMap;

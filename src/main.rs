@@ -1,9 +1,34 @@
 //! Telemetry service for FCOS.
 
+extern crate base64;
+#[macro_use]
+extern crate error_chain;
+extern crate openssh_keys;
+extern crate openssl;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde;
+extern crate serde_json;
+extern crate serde_xml_rs;
+#[macro_use]
+extern crate slog;
+extern crate slog_async;
+extern crate slog_term;
+#[macro_use]
+extern crate slog_scope;
+
+#[cfg(test)]
+extern crate mockito;
+
 /// Collect config from files.
 mod config;
-/// Agent identity.
-mod identity;
+/// `Minimal` Agent identity.
+mod minimal;
+/// Provider metadata
+mod providers;
+/// Generic retrying function
+mod retry;
+mod errors;
 
 use clap::{Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;
@@ -29,7 +54,7 @@ fn check_config(config: &inputs::ConfigInput) -> failure::Fallible<()> {
     Ok(())
 }
 
-fn send_data(id: &identity::Identity) -> failure::Fallible<()> {
+fn send_data(id: &minimal::Identity) -> failure::Fallible<()> {
     // TODO: Send data to remote endpoint
     for (key, value) in id.get_data() {
         println!("{}: {}", key, value);
@@ -69,7 +94,7 @@ fn main() -> failure::Fallible<()> {
     check_config(&config)?;
 
     // Collect the data
-    let id = identity::Identity::new(&config.collecting)?;
+    let id = minimal::Identity::new(&config.collecting)?;
     // Send to the remote endpoint
     send_data(&id)?;
 
