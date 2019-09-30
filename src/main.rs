@@ -28,7 +28,10 @@ mod minimal;
 mod providers;
 /// Generic retrying function
 mod retry;
+/// A library for consistent and reliable error handling
 mod errors;
+/// rpm-ostree client.
+mod rpm_ostree;
 
 use clap::{Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;

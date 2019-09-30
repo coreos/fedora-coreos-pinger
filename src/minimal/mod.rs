@@ -3,6 +3,7 @@ mod os_release;
 
 use crate::config::inputs;
 use crate::errors::*;
+use crate::rpm_ostree;
 use failure::{Fallible, ResultExt};
 use serde::Serialize;
 use std::collections::HashMap;
@@ -10,8 +11,6 @@ use maplit;
 
 /// Kernel arguments location
 static KERNEL_ARGS_FILE: &str = "/proc/cmdline";
-/// OS release file location
-static OS_RELEASE_FILE: &str = "/etc/os-release";
 /// aleph version file
 static OS_ALEPH_VERSION_FILE: &str = "/.coreos-aleph-version.json";
 
@@ -44,7 +43,7 @@ impl Identity {
     pub fn try_default(level: &str) -> Fallible<Self> {
         let platform = platform::read_id(KERNEL_ARGS_FILE)?;
         let original_os_version = os_release::read_original_os_version(OS_ALEPH_VERSION_FILE)?;
-        let current_os_version = os_release::read_current_os_version(OS_RELEASE_FILE)?;
+        let current_os_version = rpm_ostree::booted()?.version;
 
         let id = match level {
                     "minimal" | "full" => Self {
