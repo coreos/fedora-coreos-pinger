@@ -8,7 +8,7 @@ use serde_json;
 /// OS version flag.
 static OS_VERSION_FLAG: &str = "VERSION";
 
-/// Read original os version info from os alpha version json file.
+/// Read aleph version info from os version json file.
 pub(crate) fn read_original_os_version<T>(file_path: T) -> Fallible<String>
 where
     T: AsRef<str>,
@@ -16,13 +16,13 @@ where
     // open the os release file
     let fpath = file_path.as_ref();
     let file = fs::File::open(fpath)
-        .with_context(|e| format_err!("failed to open alpha version file {}: {}", fpath, e))?;
+        .with_context(|e| format_err!("failed to open aleph version file {}: {}", fpath, e))?;
 
     // parse the content
     let json: serde_json::Value = serde_json::from_reader(file)
-    .expect("failed to parse alpha version file as JSON");
+    .expect("failed to parse aleph version file as JSON");
     let build: String = json.get("build")
-    .expect("alpha version file does not contain 'build' key")
+    .expect("aleph version file does not contain 'build' key")
     .to_string();
 
     Ok(build)

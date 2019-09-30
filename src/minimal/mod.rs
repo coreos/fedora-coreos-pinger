@@ -12,8 +12,8 @@ use maplit;
 static KERNEL_ARGS_FILE: &str = "/proc/cmdline";
 /// OS release file location
 static OS_RELEASE_FILE: &str = "/etc/os-release";
-/// OS alpha version file
-static OS_ALPHA_VERSION_FILE: &str = "/.coreos-aleph-version.json";
+/// aleph version file
+static OS_ALEPH_VERSION_FILE: &str = "/.coreos-aleph-version.json";
 
 /// Agent identity.
 #[derive(Debug, Serialize)]
@@ -43,7 +43,7 @@ impl Identity {
     /// Try to fetch default data
     pub fn try_default(level: &str) -> Fallible<Self> {
         let platform = platform::read_id(KERNEL_ARGS_FILE)?;
-        let original_os_version = os_release::read_original_os_version(OS_ALPHA_VERSION_FILE)?;
+        let original_os_version = os_release::read_original_os_version(OS_ALEPH_VERSION_FILE)?;
         let current_os_version = os_release::read_current_os_version(OS_RELEASE_FILE)?;
 
         let id = match level {
