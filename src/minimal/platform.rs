@@ -6,69 +6,23 @@
 //!  flags. Logic is taken from Afterburn, please backport any bugfix there too:
 //!  https://github.com/coreos/afterburn/blob/v4.1.0/src/util/cmdline.rs
 
-use failure::{bail, format_err, Fallible, ResultExt};
-use std::io::Read;
-use std::{fs, io};
+use failure::Fallible;
+use crate::util;
 
 /// Platform key.
-static CMDLINE_PLATFORM_FLAG: &str = "ignition.platform.id";
+#[cfg(not(feature = "cl-legacy"))]
+const CMDLINE_PLATFORM_FLAG: &str = "ignition.platform.id";
+/// Platform key (CL and RHCOS legacy name: "OEM").
+#[cfg(feature = "cl-legacy")]
+const CMDLINE_PLATFORM_FLAG: &str = "coreos.oem.id";
 
 /// Read platform value from cmdline file.
-pub(crate) fn read_id<T>(cmdline_path: T) -> Fallible<String>
+pub(crate) fn get_platform<T>(cmdline_path: T) -> Fallible<String>
 where
     T: AsRef<str>,
 {
-    // open the cmdline file
     let fpath = cmdline_path.as_ref();
-    let file = fs::File::open(fpath)
-        .with_context(|e| format_err!("failed to open cmdline file {}: {}", fpath, e))?;
-
-    // read content
-    let mut bufrd = io::BufReader::new(file);
-    let mut contents = String::new();
-    bufrd
-        .read_to_string(&mut contents)
-        .with_context(|e| format_err!("failed to read cmdline file {}: {}", fpath, e))?;
-
-    // lookup flag by key name
-    match find_flag_value(CMDLINE_PLATFORM_FLAG, &contents) {
-        Some(platform) => {
-            log::trace!("found platform id: {}", platform);
-            Ok(platform)
-        }
-        None => bail!(
-            "could not find flag '{}' in {}",
-            CMDLINE_PLATFORM_FLAG,
-            fpath
-        ),
-    }
-}
-
-/// Find OEM ID flag value in cmdline string.
-fn find_flag_value(flagname: &str, cmdline: &str) -> Option<String> {
-    // split content into elements and keep key-value tuples only.
-    let params: Vec<(&str, &str)> = cmdline
-        .split(' ')
-        .filter_map(|s| {
-            let kv: Vec<&str> = s.splitn(2, '=').collect();
-            match kv.len() {
-                2 => Some((kv[0], kv[1])),
-                _ => None,
-            }
-        })
-        .collect();
-
-    // find the oem flag
-    for (key, val) in params {
-        if key != flagname {
-            continue;
-        }
-        let bare_val = val.trim();
-        if !bare_val.is_empty() {
-            return Some(bare_val.to_string());
-        }
-    }
-    None
+    util::get_value_by_flag(CMDLINE_PLATFORM_FLAG, fpath)
 }
 
 #[cfg(test)]
@@ -90,7 +44,7 @@ mod tests {
             ("ignition.platform.id=ec2 foo=bar", Some("ec2".to_string())),
         ];
         for (tcase, tres) in tests {
-            let res = find_flag_value(flagname, tcase);
+            let res = util::find_flag_value(flagname, tcase);
             assert_eq!(res, tres, "failed testcase: '{}'", tcase);
         }
     }

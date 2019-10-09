@@ -1,19 +1,6 @@
 //! Telemetry service for FCOS.
 
-extern crate base64;
-#[macro_use]
-extern crate error_chain;
-extern crate openssh_keys;
-extern crate openssl;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-extern crate serde_json;
-extern crate serde_xml_rs;
-#[macro_use]
 extern crate slog;
-extern crate slog_async;
-extern crate slog_term;
 #[macro_use]
 extern crate slog_scope;
 
@@ -24,14 +11,10 @@ extern crate mockito;
 mod config;
 /// `Minimal` Agent identity.
 mod minimal;
-/// Provider metadata
-mod providers;
-/// Generic retrying function
-mod retry;
-/// A library for consistent and reliable error handling
-mod errors;
 /// rpm-ostree client.
 mod rpm_ostree;
+/// utility functions
+mod util;
 
 use clap::{Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;

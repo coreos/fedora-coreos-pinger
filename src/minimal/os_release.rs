@@ -1,8 +1,7 @@
 //! OS version parsing - utility functions
 
-use failure::{bail, format_err, Fallible, ResultExt};
-use std::io::Read;
-use std::{fs, io};
+use failure::{format_err, Fallible, ResultExt};
+use std::fs;
 use serde_json;
 
 /// Read aleph version info from os version json file.
