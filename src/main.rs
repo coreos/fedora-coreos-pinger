@@ -6,6 +6,8 @@ extern crate slog_scope;
 
 #[cfg(test)]
 extern crate mockito;
+#[cfg(test)]
+extern crate tempfile;
 
 /// Collect config from files.
 mod config;

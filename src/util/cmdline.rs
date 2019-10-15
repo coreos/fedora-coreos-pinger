@@ -24,7 +24,7 @@ use std::io::Read;
 use std::{fs, io};
 
 // Get value of `flag` from key=value pairs in the file `fpath`
-pub fn get_value_by_flag(flag: &str, fpath: &str) -> Fallible<String> {
+pub fn get_value_by_flag(flag: &str, fpath: &str, delimiter: &str) -> Fallible<String> {
     // open the cmdline file
     let file =
         fs::File::open(fpath)
@@ -37,7 +37,7 @@ pub fn get_value_by_flag(flag: &str, fpath: &str) -> Fallible<String> {
         .read_to_string(&mut contents)
         .with_context(|e| format_err!("Failed to read file {}: {}", fpath, e))?;
 
-    match find_flag_value(flag, &contents) {
+    match find_flag_value(flag, &contents, delimiter) {
         Some(platform) => {
             trace!("found '{}' flag: {}", flag, platform);
             Ok(platform)
@@ -51,10 +51,10 @@ pub fn get_value_by_flag(flag: &str, fpath: &str) -> Fallible<String> {
 }
 
 // Find flag value in cmdline string.
-pub fn find_flag_value(flagname: &str, cmdline: &str) -> Option<String> {
+pub fn find_flag_value(flagname: &str, cmdline: &str, delimiter: &str) -> Option<String> {
     // split the contents into elements and keep key-value tuples only.
     let params: Vec<(&str, &str)> = cmdline
-        .split(' ')
+        .split(delimiter)
         .filter_map(|s| {
             let kv: Vec<&str> = s.splitn(2, '=').collect();
             match kv.len() {
@@ -96,7 +96,7 @@ mod tests {
             ("coreos.oem.id=ec2 foo=bar", Some("ec2".to_string())),
         ];
         for (tcase, tres) in tests {
-            let res = find_flag_value(flagname, tcase);
+            let res = find_flag_value(flagname, tcase, " ");
             assert_eq!(res, tres, "failed testcase: '{}'", tcase);
         }
     }

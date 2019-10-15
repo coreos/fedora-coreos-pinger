@@ -1,7 +1,10 @@
 mod platform;
 mod os_release;
 mod instance_type;
+#[cfg(test)]
+mod mock_tests;
 
+#[cfg(not(test))]
 use crate::rpm_ostree;
 use failure::{Fallible, ResultExt};
 use serde::Serialize;
@@ -18,7 +21,7 @@ static OS_ALEPH_VERSION_FILE: &str = "/.coreos-aleph-version.json";
 static AFTERBURN_METADATA: &str = "/run/metadata/afterburn";
 
 /// Agent identity.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub(crate) struct IdentityMin {
     /// OS platform
     pub(crate) platform: String,
@@ -32,16 +35,22 @@ pub(crate) struct IdentityMin {
 
 impl IdentityMin {
     pub(crate) fn new() -> Fallible<Self> {
-        Ok(Self::collect_minimal_data().context(format!("failed to build 'minimal' identity"))?)
+        Ok(Self::collect_minimal_data(KERNEL_ARGS_FILE, OS_ALEPH_VERSION_FILE, AFTERBURN_METADATA)
+        .context(format!("failed to build 'minimal' identity"))?)
     }
 
-    /// Try to fetch data in minimal level
-    pub fn collect_minimal_data() -> Fallible<Self> {
-        let platform = platform::get_platform(KERNEL_ARGS_FILE)?;
-        let original_os_version = os_release::read_original_os_version(OS_ALEPH_VERSION_FILE)?;
+    /// Trys to fetch data in minimal level and
+    /// takes three arguments: cmdline, aleph_version, and metadata,
+    /// representing the path to the files containing the corresponding information
+    pub fn collect_minimal_data(cmdline:&str, aleph_version:&str, metadata:&str) -> Fallible<Self> {
+        let platform = platform::get_platform(cmdline)?;
+        let original_os_version = os_release::read_original_os_version(aleph_version)?;
+        #[cfg(not(test))]
         let current_os_version = rpm_ostree::booted()?.version;
+        #[cfg(test)]
+        let current_os_version = "30.20190924.dev.0".to_string();
         let instance_type: Option<String> = match platform.as_str() {
-            "aliyun" | "aws" | "azure" | "gcp" | "openstack" => Some(instance_type::read_instance_type(AFTERBURN_METADATA, platform.as_str())?),
+            "aliyun" | "aws" | "azure" | "gcp" | "openstack" => Some(instance_type::read_instance_type(metadata, platform.as_str())?),
             _ => None,
         };
 
@@ -83,7 +92,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_minimal() {
+    fn test_minimal_without_file() {
         let id = IdentityMin::mock_default();
         let vars = id.get_data();
 

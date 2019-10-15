@@ -21,6 +21,7 @@ where
     .expect("aleph version file does not contain 'build' key")
     .to_string();
 
-    Ok(build)
+    // remove the leading and trailing quotes, \"
+    Ok(build[1..build.len()-1].to_string())
 
 }

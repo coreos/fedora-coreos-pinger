@@ -22,30 +22,5 @@ where
     T: AsRef<str>,
 {
     let fpath = cmdline_path.as_ref();
-    util::get_value_by_flag(CMDLINE_PLATFORM_FLAG, fpath)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_find_flag_platform() {
-        let flagname = "ignition.platform.id";
-        let tests = vec![
-            ("", None),
-            ("foo=bar", None),
-            ("ignition.platform.id", None),
-            ("ignition.platform.id=", None),
-            ("ignition.platform.id=\t", None),
-            ("ignition.platform.id=ec2", Some("ec2".to_string())),
-            ("ignition.platform.id=\tec2", Some("ec2".to_string())),
-            ("ignition.platform.id=ec2\n", Some("ec2".to_string())),
-            ("foo=bar ignition.platform.id=ec2", Some("ec2".to_string())),
-            ("ignition.platform.id=ec2 foo=bar", Some("ec2".to_string())),
-        ];
-        for (tcase, tres) in tests {
-            let res = util::find_flag_value(flagname, tcase);
-            assert_eq!(res, tres, "failed testcase: '{}'", tcase);
-        }
-    }
+    util::get_value_by_flag(CMDLINE_PLATFORM_FLAG, fpath, " ")
 }

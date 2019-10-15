@@ -31,7 +31,7 @@ where
         .with_context(|e| format_err!("failed to read metadata file {}: {}", fpath, e))?;
 
     // lookup flag by key name
-    match util::find_flag_value(flag, &contents) {
+    match util::find_flag_value(flag, &contents, "\n") {
         Some(platform) => {
             log::trace!("found platform id: {}", platform);
             Ok(platform)

@@ -24,6 +24,7 @@ maplit = "^1.0"
 serde = { version = "^1.0.91", features = ["derive"] }
 serde_json = "1.0.40"
 slog-scope = "~4.1"
+tempfile = "3.1.0"
 toml = "^0.5.1"
 
 [package.metadata.release]
