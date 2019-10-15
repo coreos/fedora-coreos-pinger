@@ -14,7 +14,7 @@ impl HardwareJSON {
     /// disk_info from: `lsblk --fs --json`
     /// cpu_info from: `lscpu --json`
     /// mem_info from: `lsmem --json` and `lsmem --summary`
-    pub fn new() -> Fallible<HardwareJSON> {
+    pub(crate) fn new() -> Fallible<HardwareJSON> {
         let lsblk_struct = lsblk::LsblkJSON::new()?;
         let lscpu_struct = lscpu::LscpuJSON::new()?;
         let lsmem_struct = lsmem::LsmemJSON::new()?;
@@ -26,10 +26,4 @@ impl HardwareJSON {
         })
 
     }
-}
-
-#[test]
-fn test_get_hardware_info() {
-    let hw_struct = HardwareJSON::new();
-    println!("{:?}", hw_struct.unwrap());
 }

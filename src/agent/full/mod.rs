@@ -5,6 +5,9 @@ mod lsblk;
 mod lscpu;
 mod lsmem;
 
+#[cfg(test)]
+mod mock_tests;
+
 use failure::Fallible;
 
 #[derive(Debug)]

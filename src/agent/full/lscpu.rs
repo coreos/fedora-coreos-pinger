@@ -3,19 +3,19 @@ use serde::Deserialize;
 use failure::{bail, format_err, Fallible, ResultExt};
 
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct LscpuJSON {
     lscpu: Vec<CPUInfoJSON>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 struct CPUInfoJSON {
     field: String,
     data: String,
 }
 
 impl LscpuJSON {
-    pub fn new() -> Fallible<LscpuJSON> {
+    pub(crate) fn new() -> Fallible<LscpuJSON> {
         let mut cmd = std::process::Command::new("lscpu");
         let cmdrun = cmd
             .arg("--json")

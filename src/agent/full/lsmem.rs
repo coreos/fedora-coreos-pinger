@@ -3,12 +3,12 @@ use serde::Deserialize;
 use failure::{bail, format_err, Fallible, ResultExt};
 
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct LsmemJSON {
     memory: Vec<MemoryJSON>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 struct MemoryJSON {
     size: String,
     state: String,
@@ -17,7 +17,7 @@ struct MemoryJSON {
 }
 
 impl LsmemJSON {
-    pub fn new() -> Fallible<LsmemJSON> {
+    pub(crate) fn new() -> Fallible<LsmemJSON> {
         let mut cmd = std::process::Command::new("lsmem");
         let cmdrun = cmd
             .arg("--json")

@@ -3,12 +3,12 @@ use serde::Deserialize;
 use failure::{bail, format_err, Fallible, ResultExt};
 
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct LsblkJSON {
     blockdevices: Vec<DeviceJSON>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 struct DeviceJSON {
     name: String,
     fstype: Option<String>,
@@ -21,7 +21,7 @@ struct DeviceJSON {
 }
 
 impl LsblkJSON {
-    pub fn new() -> Fallible<LsblkJSON> {
+    pub(crate) fn new() -> Fallible<LsblkJSON> {
         let mut cmd = std::process::Command::new("lsblk");
         let cmdrun = cmd
             .arg("--fs")
