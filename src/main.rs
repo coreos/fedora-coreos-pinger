@@ -9,22 +9,22 @@ extern crate mockito;
 
 /// Collect config from files.
 mod config;
-/// `Minimal` Agent identity.
-mod minimal;
 /// rpm-ostree client.
 mod rpm_ostree;
 /// utility functions
 mod util;
+/// agent module
+mod agent;
 
 use clap::{Arg, crate_authors, crate_description, crate_name, crate_version};
 use config::inputs;
-use failure::{bail, ResultExt};
+use failure::{bail, ResultExt, Fallible};
 use log::LevelFilter;
 
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
 /// and check that the keys are set to a valid telemetry setting. If not,
 /// or in case of other error, return non-zero.
-fn check_config(config: &inputs::ConfigInput) -> failure::Fallible<()> {
+fn check_config(config: &inputs::ConfigInput) -> Fallible<bool> {
     if config.reporting.enabled.unwrap() {
         println!("Reporting enabled.");
 
@@ -33,23 +33,24 @@ fn check_config(config: &inputs::ConfigInput) -> failure::Fallible<()> {
             "minimal" | "full" => println!("Collection set at level '{}'.", collecting_level),
             _ => bail!("invalid collection level '{}'", collecting_level),
         }
+
+        Ok(true)
     } else {
         println!("Reporting disabled.");
-    }
 
-    Ok(())
+        Ok(false)
+    }
 }
 
-fn send_data(id: &minimal::Identity) -> failure::Fallible<()> {
+fn send_data(agent: &agent::Agent) -> Fallible<()> {
     // TODO: Send data to remote endpoint
-    for (key, value) in id.get_data() {
-        println!("{}: {}", key, value);
-    }
+    // Currently only prints the Agent struct
+    println!("{:?}", agent);
 
     Ok(())
 }
 
-fn main() -> failure::Fallible<()> {
+fn main() -> Fallible<()> {
     let matches = clap::app_from_crate!()
         .arg(Arg::with_name("v")
             .short("v")
@@ -77,12 +78,14 @@ fn main() -> failure::Fallible<()> {
     let config = inputs::ConfigInput::read_configs(dirs, crate_name!())
         .context("failed to read configuration input")?;
 
-    check_config(&config)?;
+    let is_enabled = check_config(&config)?;
 
-    // Collect the data
-    let id = minimal::Identity::new(&config.collecting)?;
-    // Send to the remote endpoint
-    send_data(&id)?;
+    // Collect the data if enabled
+    if is_enabled {
+        let agent = agent::Agent::new(&config.collecting)?;
+        // Send to the remote endpoint
+        send_data(&agent)?;
+    }
 
     Ok(())
 }
