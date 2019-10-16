@@ -1,9 +1,9 @@
 //! Cloud instance type parsing - utility functions
 
+use crate::util;
 use failure::{bail, format_err, Fallible, ResultExt};
 use std::io::Read;
 use std::{fs, io};
-use crate::util;
 
 /// Read instance type from cloud metadata file created by Afterburn
 pub(crate) fn read_instance_type<T>(cmdline_path: T, platform_id: &str) -> Fallible<String>
@@ -36,10 +36,6 @@ where
             log::trace!("found platform id: {}", platform);
             Ok(platform)
         }
-        None => bail!(
-            "could not find flag '{}' in {}",
-            flag,
-            fpath
-        ),
+        None => bail!("could not find flag '{}' in {}", flag, fpath),
     }
 }

@@ -9,18 +9,18 @@ extern crate mockito;
 #[cfg(test)]
 extern crate tempfile;
 
+/// agent module
+mod agent;
 /// Collect config from files.
 mod config;
 /// rpm-ostree client.
 mod rpm_ostree;
 /// utility functions
 mod util;
-/// agent module
-mod agent;
 
-use clap::{Arg, crate_authors, crate_description, crate_name, crate_version};
+use clap::{crate_authors, crate_description, crate_name, crate_version, Arg};
 use config::inputs;
-use failure::{bail, ResultExt, Fallible};
+use failure::{bail, Fallible, ResultExt};
 use log::LevelFilter;
 
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
@@ -54,10 +54,12 @@ fn send_data(agent: &agent::Agent) -> Fallible<()> {
 
 fn main() -> Fallible<()> {
     let matches = clap::app_from_crate!()
-        .arg(Arg::with_name("v")
-            .short("v")
-            .multiple(true)
-            .help("Sets log verbosity level"))
+        .arg(
+            Arg::with_name("v")
+                .short("v")
+                .multiple(true)
+                .help("Sets log verbosity level"),
+        )
         .get_matches();
 
     let log_level = match matches.occurrences_of("v") {

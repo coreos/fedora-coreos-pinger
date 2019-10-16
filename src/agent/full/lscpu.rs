@@ -1,7 +1,6 @@
 //! Struct for `lscpu --json`
-use serde::Deserialize;
 use failure::{bail, format_err, Fallible, ResultExt};
-
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct LscpuJSON {

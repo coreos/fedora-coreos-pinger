@@ -23,11 +23,10 @@ use failure::{bail, format_err, Fallible, ResultExt};
 use std::io::Read;
 use std::{fs, io};
 
-// Get value of `flag` from key=value pairs in the file `fpath`
+// Get value of `flag` from key-value pairs in the file `fpath`
 pub fn get_value_by_flag(flag: &str, fpath: &str, delimiter: &str) -> Fallible<String> {
     // open the cmdline file
-    let file =
-        fs::File::open(fpath)
+    let file = fs::File::open(fpath)
         .with_context(|e| format_err!("Failed to open file {}: {}", fpath, e))?;
 
     // read the contents
@@ -42,11 +41,7 @@ pub fn get_value_by_flag(flag: &str, fpath: &str, delimiter: &str) -> Fallible<S
             trace!("found '{}' flag: {}", flag, platform);
             Ok(platform)
         }
-        None => bail!(
-            "Couldn't find flag '{}' in file ({})",
-            flag,
-            fpath
-        ),
+        None => bail!("Couldn't find flag '{}' in file ({})", flag, fpath),
     }
 }
 

@@ -1,7 +1,7 @@
 //! Struct for `lsmem --json`
-use serde::{Deserialize, Deserializer};
-use serde::de::{self, Unexpected};
 use failure::{bail, format_err, Fallible, ResultExt};
+use serde::de::{self, Unexpected};
+use serde::{Deserialize, Deserializer};
 use std::fmt;
 
 #[derive(Debug, Deserialize, PartialEq)]

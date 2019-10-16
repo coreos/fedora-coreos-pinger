@@ -1,7 +1,7 @@
 //! Collect summary of hardware on bare metal machines
 
-use failure::Fallible;
 use super::{lsblk, lscpu, lsmem};
+use failure::Fallible;
 
 #[derive(Debug)]
 pub(crate) struct HardwareJSON {
@@ -24,6 +24,5 @@ impl HardwareJSON {
             cpu: lscpu_struct,
             memory: lsmem_struct,
         })
-
     }
 }

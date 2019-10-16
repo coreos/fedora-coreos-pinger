@@ -6,8 +6,8 @@
 //!  flags. Logic is taken from Afterburn, please backport any bugfix there too:
 //!  https://github.com/coreos/afterburn/blob/v4.1.0/src/util/cmdline.rs
 
-use failure::Fallible;
 use crate::util;
+use failure::Fallible;
 
 /// Platform key.
 #[cfg(not(feature = "cl-legacy"))]

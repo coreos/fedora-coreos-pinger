@@ -1,12 +1,12 @@
-use crate::agent::full::lscpu;
-use crate::agent::full::lsblk;
-use crate::agent::full::lsmem;
 use crate::agent::full::hardware;
+use crate::agent::full::lsblk;
+use crate::agent::full::lscpu;
+use crate::agent::full::lsmem;
 
 #[test]
 fn test_lscpu() {
     let lscpu_result = lscpu::LscpuJSON::new().unwrap();
-    let expected_result:lscpu::LscpuJSON = {
+    let expected_result: lscpu::LscpuJSON = {
         let mut cmd = std::process::Command::new("lscpu");
         let cmdrun = cmd
             .arg("--json")
@@ -28,7 +28,7 @@ fn test_lscpu() {
 #[test]
 fn test_lsblk() {
     let lsblk_result = lsblk::LsblkJSON::new().unwrap();
-    let expected_result:lsblk::LsblkJSON= {
+    let expected_result: lsblk::LsblkJSON = {
         let mut cmd = std::process::Command::new("lsblk");
         let cmdrun = cmd
             .arg("--fs")
