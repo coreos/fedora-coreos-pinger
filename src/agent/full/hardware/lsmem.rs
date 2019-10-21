@@ -6,11 +6,11 @@ use std::fmt;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct LsmemJSON {
-    memory: Vec<MemoryJSON>,
+    pub(crate) memory: Vec<MemoryJSON>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct MemoryJSON {
+pub(crate) struct MemoryJSON {
     size: String,
     state: String,
     #[serde(deserialize_with = "deserialize_bool_or_string")]
@@ -66,6 +66,8 @@ impl<'de> de::Visitor<'de> for DeserializeBoolOrString {
     }
 }
 
+/// In some version of lsmem, the field `removable` is 'yes'/'no' instead of 'true'/'false',
+/// causing failure of deserialization by serde, hence adds this customized deserializing function
 fn deserialize_bool_or_string<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,

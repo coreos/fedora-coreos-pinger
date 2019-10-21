@@ -1,7 +1,7 @@
 use crate::agent::full::hardware;
-use crate::agent::full::lsblk;
-use crate::agent::full::lscpu;
-use crate::agent::full::lsmem;
+use hardware::lsblk;
+use hardware::lscpu;
+use hardware::lsmem;
 
 #[test]
 fn test_lscpu() {

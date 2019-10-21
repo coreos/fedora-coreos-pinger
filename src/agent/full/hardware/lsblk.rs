@@ -4,11 +4,11 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct LsblkJSON {
-    blockdevices: Vec<DeviceJSON>,
+    pub(crate) blockdevices: Vec<DeviceJSON>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct DeviceJSON {
+pub(crate) struct DeviceJSON {
     name: String,
     fstype: Option<String>,
     label: Option<String>,

@@ -1,6 +1,9 @@
 //! Collect summary of hardware on bare metal machines
 
-use super::{lsblk, lscpu, lsmem};
+pub(crate) mod lsblk;
+pub(crate) mod lscpu;
+pub(crate) mod lsmem;
+
 use failure::Fallible;
 
 #[derive(Debug)]
@@ -15,9 +18,13 @@ impl HardwareJSON {
     /// cpu_info from: `lscpu --json`
     /// mem_info from: `lsmem --json` and `lsmem --summary`
     pub(crate) fn new() -> Fallible<HardwareJSON> {
-        let lsblk_struct = lsblk::LsblkJSON::new()?;
-        let lscpu_struct = lscpu::LscpuJSON::new()?;
-        let lsmem_struct = lsmem::LsmemJSON::new()?;
+        let lsblk_struct = lsblk::LsblkJSON::new().unwrap_or(lsblk::LsblkJSON {
+            blockdevices: Vec::new(),
+        });
+        let lscpu_struct =
+            lscpu::LscpuJSON::new().unwrap_or(lscpu::LscpuJSON { lscpu: Vec::new() });
+        let lsmem_struct =
+            lsmem::LsmemJSON::new().unwrap_or(lsmem::LsmemJSON { memory: Vec::new() });
 
         Ok(HardwareJSON {
             disk: lsblk_struct,

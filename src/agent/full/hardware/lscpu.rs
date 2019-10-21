@@ -4,11 +4,11 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub(crate) struct LscpuJSON {
-    lscpu: Vec<CPUInfoJSON>,
+    pub(crate) lscpu: Vec<CPUInfoJSON>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct CPUInfoJSON {
+pub(crate) struct CPUInfoJSON {
     field: String,
     data: String,
 }
