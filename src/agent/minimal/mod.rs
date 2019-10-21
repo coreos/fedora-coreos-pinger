@@ -49,15 +49,22 @@ impl IdentityMin {
         aleph_version: &str,
         metadata: &str,
     ) -> Fallible<Self> {
-        let platform = platform::get_platform(cmdline)?;
-        let original_os_version = os_release::read_original_os_version(aleph_version)?;
+        let platform = platform::get_platform(cmdline).unwrap_or("".to_string());
+        let original_os_version =
+            os_release::read_original_os_version(aleph_version).unwrap_or("".to_string());
         #[cfg(not(test))]
-        let current_os_version = rpm_ostree::booted()?.version;
+        let current_os_version = rpm_ostree::booted()
+            .unwrap_or(rpm_ostree::Release {
+                version: "".to_string(),
+                checksum: "".to_string(),
+            })
+            .version;
         #[cfg(test)]
         let current_os_version = "30.20190924.dev.0".to_string();
         let instance_type: Option<String> = match platform.as_str() {
             "aliyun" | "aws" | "azure" | "gcp" | "openstack" => Some(
-                instance_type::read_instance_type(metadata, platform.as_str())?,
+                instance_type::read_instance_type(metadata, platform.as_str())
+                    .unwrap_or("".to_string()),
             ),
             _ => None,
         };

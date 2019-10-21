@@ -37,3 +37,21 @@ impl Agent {
         }
     }
 }
+
+#[test]
+fn test_print_minimal() {
+    use crate::config::inputs;
+    use clap::crate_name;
+
+    let cfg:inputs::ConfigInput = inputs::ConfigInput::read_configs(vec!["tests/minimal/".to_string()], crate_name!()).unwrap();
+    println!("{:?}", Agent::new(&cfg.collecting));
+}
+
+#[test]
+fn test_print_full() {
+    use crate::config::inputs;
+    use clap::crate_name;
+
+    let cfg:inputs::ConfigInput = inputs::ConfigInput::read_configs(vec!["tests/full/".to_string()], crate_name!()).unwrap();
+    println!("{:?}", Agent::new(&cfg.collecting));
+}

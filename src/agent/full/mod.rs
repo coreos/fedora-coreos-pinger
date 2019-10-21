@@ -42,8 +42,3 @@ impl IdentityFull {
         }
     }
 }
-
-#[test]
-fn test_print_full() {
-    println!("{:?}", IdentityFull::new());
-}
