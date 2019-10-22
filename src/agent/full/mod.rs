@@ -1,4 +1,4 @@
-//! Module to collect data under `Full` level
+//! Module to collect data under `full` level
 
 mod container_runtime;
 mod hardware;

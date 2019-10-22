@@ -1,4 +1,5 @@
 //! Agent module for level `minimal` and `full`
+
 pub mod full;
 pub mod minimal;
 

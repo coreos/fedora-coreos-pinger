@@ -1,4 +1,5 @@
-//! Struct for `lscpu --json`
+//! Module for running `lscpu --json`, and storing the output
+//! in the struct LscpuJSON
 use failure::{bail, format_err, Fallible, ResultExt};
 use serde::{Deserialize, Serialize};
 

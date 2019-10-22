@@ -1,4 +1,5 @@
-//! Struct for `lsblk --fs --json`
+//! Module for running `lsblk --fs --json`, and storing the
+//! output in the struct LsblkJSON
 use failure::{bail, format_err, Fallible, ResultExt};
 use serde::{Deserialize, Serialize};
 

@@ -1,3 +1,5 @@
+//! Module to collect data under `minimal` level
+
 mod instance_type;
 #[cfg(test)]
 mod mock_tests;

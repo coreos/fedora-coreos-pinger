@@ -1,4 +1,5 @@
-//! Module to obtain network information from `nmcli device show`
+//! Module to obtain network information from `nmcli device show`,
+//! parse the output, and store the output in a HashMap
 use failure::{bail, format_err, Fallible, ResultExt};
 use std::collections::HashMap;
 

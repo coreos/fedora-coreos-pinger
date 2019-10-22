@@ -1,4 +1,5 @@
-//! Struct for `lsmem --json`
+//! Module for running `lsmem --json`, and storing the output
+//! in the struct LsmemJSON
 use failure::{bail, format_err, Fallible, ResultExt};
 use serde::de::{self, Unexpected};
 use serde::{Deserialize, Deserializer, Serialize};

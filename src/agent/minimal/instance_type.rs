@@ -6,6 +6,7 @@ use std::io::Read;
 use std::{fs, io};
 
 /// Read instance type from cloud metadata file created by Afterburn
+/// reference: https://github.com/coreos/afterburn/pull/278
 pub(crate) fn read_instance_type<T>(cmdline_path: T, platform_id: &str) -> Fallible<String>
 where
     T: AsRef<str>,
