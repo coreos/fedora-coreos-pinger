@@ -9,6 +9,7 @@ After=network-online.target
 DynamicUser=yes
 Type=oneshot
 RemainAfterExit=yes
+StateDirectory=fedora-coreos-pinger
 ExecStart=/usr/libexec/fedora-coreos-pinger
 
 [Install]
