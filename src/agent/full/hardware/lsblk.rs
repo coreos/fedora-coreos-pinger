@@ -1,13 +1,13 @@
 //! Struct for `lsblk --fs --json`
 use failure::{bail, format_err, Fallible, ResultExt};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub(crate) struct LsblkJSON {
     pub(crate) blockdevices: Vec<DeviceJSON>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub(crate) struct DeviceJSON {
     name: String,
     fstype: Option<String>,

@@ -5,8 +5,9 @@ pub(crate) mod lscpu;
 pub(crate) mod lsmem;
 
 use failure::Fallible;
+use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub(crate) struct HardwareJSON {
     disk: lsblk::LsblkJSON,
     cpu: lscpu::LscpuJSON,

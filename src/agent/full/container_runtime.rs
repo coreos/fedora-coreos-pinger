@@ -11,15 +11,19 @@
 //! `podman info --format json`
 //! `docker info --format '{{json .}}'`
 //! `crictl info`
+//!
+//! Note: Currenly the output from `info` commands are not stored as struct,
+//! instead they are parsed by serde_json from String into serde_json::Value.
 
 use failure::{self, bail, Fallible};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use serde_json;
 use std::cmp;
 use std::io::Write;
 use std::process;
 
 /// stores number of containers run by each container runtime
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct ContainerCounts {
     /// number of containers run by podman
     /// extracted from `podman container ls | wc -l`
@@ -37,18 +41,18 @@ pub(crate) struct ContainerCounts {
 }
 
 /// stores system-wide information from container runtimes
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct ContainerInfo {
     /// output of `podman info --format json`
-    podman: String,
+    podman: Option<serde_json::Value>,
     /// output of `docker info --format '{{json .}}'` if dockerd is running
-    docker: String,
+    docker: Option<serde_json::Value>,
     /// output of `crictl info`, default format is json
-    crio: String,
+    crio: Option<serde_json::Value>,
 }
 
 /// wrapper struct for container counts and system-wide information
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct ContainerRT {
     counts: ContainerCounts,
     info: ContainerInfo,
@@ -102,9 +106,27 @@ impl ContainerRT {
                 systemd_nspawn: Self::rt_count_running("machinectl").unwrap_or(0),
             },
             info: ContainerInfo {
-                podman: Self::rt_fetch_info("podman").unwrap_or("".to_string()),
-                docker: Self::rt_fetch_info("docker").unwrap_or("".to_string()),
-                crio: Self::rt_fetch_info("crictl").unwrap_or("".to_string()),
+                podman: match Self::rt_fetch_info("podman") {
+                    Ok(result) => match serde_json::from_str(result.as_str()) {
+                        Ok(value) => Some(value),
+                        _ => None,
+                    },
+                    _ => None,
+                },
+                docker: match Self::rt_fetch_info("docker") {
+                    Ok(result) => match serde_json::from_str(result.as_str()) {
+                        Ok(value) => Some(value),
+                        _ => None,
+                    },
+                    _ => None,
+                },
+                crio: match Self::rt_fetch_info("crictl") {
+                    Ok(result) => match serde_json::from_str(result.as_str()) {
+                        Ok(value) => Some(value),
+                        _ => None,
+                    },
+                    _ => None,
+                },
             },
         }
     }

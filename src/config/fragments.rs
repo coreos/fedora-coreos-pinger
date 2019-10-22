@@ -27,7 +27,9 @@ pub(crate) struct ReportingFragment {
 pub(crate) fn mock_config() -> ConfigFragment {
     use std::io::Read;
 
-    let fp = std::fs::File::open("tests/minimal/fedora-coreos-pinger/config.d/10-default-enable.toml").unwrap();
+    let fp =
+        std::fs::File::open("tests/minimal/fedora-coreos-pinger/config.d/10-default-enable.toml")
+            .unwrap();
     let mut bufrd = std::io::BufReader::new(fp);
     let mut content = vec![];
     bufrd.read_to_end(&mut content).unwrap();

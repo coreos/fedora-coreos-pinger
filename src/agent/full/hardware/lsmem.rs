@@ -1,15 +1,15 @@
 //! Struct for `lsmem --json`
 use failure::{bail, format_err, Fallible, ResultExt};
 use serde::de::{self, Unexpected};
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt;
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub(crate) struct LsmemJSON {
     pub(crate) memory: Vec<MemoryJSON>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub(crate) struct MemoryJSON {
     size: String,
     state: String,

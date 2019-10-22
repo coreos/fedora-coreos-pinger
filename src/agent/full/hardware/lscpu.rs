@@ -1,13 +1,13 @@
 //! Struct for `lscpu --json`
 use failure::{bail, format_err, Fallible, ResultExt};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub(crate) struct LscpuJSON {
     pub(crate) lscpu: Vec<CPUInfoJSON>,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CPUInfoJSON {
     field: String,
     data: String,

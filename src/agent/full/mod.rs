@@ -9,9 +9,10 @@ mod mock_tests;
 
 use crate::agent::minimal;
 use failure::Fallible;
+use serde::Serialize;
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub(crate) struct IdentityFull {
     hardware: Option<hardware::HardwareJSON>,
     network: HashMap<String, String>,

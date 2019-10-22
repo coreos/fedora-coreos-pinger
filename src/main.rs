@@ -5,8 +5,6 @@ extern crate slog;
 extern crate slog_scope;
 
 #[cfg(test)]
-extern crate mockito;
-#[cfg(test)]
 extern crate tempfile;
 
 /// agent module
@@ -22,6 +20,9 @@ use clap::{crate_authors, crate_description, crate_name, crate_version, Arg};
 use config::inputs;
 use failure::{bail, Fallible, ResultExt};
 use log::LevelFilter;
+#[cfg(test)]
+use mockito;
+use serde_json::json;
 
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
 /// and check that the keys are set to a valid telemetry setting. If not,
@@ -47,7 +48,14 @@ fn check_config(config: &inputs::ConfigInput) -> Fallible<bool> {
 fn send_data(agent: &agent::Agent) -> Fallible<()> {
     // TODO: Send data to remote endpoint
     // Currently only prints the Agent struct
-    println!("{:?}", agent);
+    println!("{:?}", json!(agent));
+
+    #[cfg(test)]
+    {
+        let url = mockito::server_url();
+        let client = reqwest::Client::new();
+        client.post(url.as_str()).json(agent).send()?;
+    };
 
     Ok(())
 }
@@ -92,4 +100,23 @@ fn main() -> Fallible<()> {
     }
 
     Ok(())
+}
+
+#[test]
+fn test_send_data() {
+    use crate::agent::Agent;
+    use crate::config::inputs;
+    use clap::crate_name;
+
+    let mock = mockito::mock("POST", "/")
+        .match_header("content-type", "application/json")
+        .with_status(200)
+        .create();
+
+    let cfg: inputs::ConfigInput =
+        inputs::ConfigInput::read_configs(vec!["tests/full/".to_string()], crate_name!()).unwrap();
+    let agent = Agent::new(&cfg.collecting).unwrap();
+    send_data(&(agent)).unwrap();
+
+    mock.assert();
 }
