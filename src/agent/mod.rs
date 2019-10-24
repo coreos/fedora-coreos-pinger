@@ -3,7 +3,6 @@
 pub mod full;
 pub mod minimal;
 
-use crate::config::inputs;
 use failure::{bail, Fallible};
 use serde::Serialize;
 
@@ -18,9 +17,8 @@ pub(crate) struct Agent {
 }
 
 impl Agent {
-    pub(crate) fn new(cfg: &inputs::CollectingInput) -> Fallible<Agent> {
-        let collecting_level = &cfg.level;
-        match collecting_level.as_str() {
+    pub(crate) fn new(collecting_level: &str) -> Fallible<Agent> {
+        match collecting_level {
             "minimal" => {
                 return Ok(Agent {
                     level: "minimal".to_string(),
@@ -48,7 +46,7 @@ fn test_print_minimal() {
     let cfg: inputs::ConfigInput =
         inputs::ConfigInput::read_configs(vec!["tests/minimal/".to_string()], crate_name!())
             .unwrap();
-    println!("{:?}", Agent::new(&cfg.collecting));
+    println!("{:?}", Agent::new(&cfg.collecting.level));
 }
 
 #[test]
@@ -58,5 +56,5 @@ fn test_print_full() {
 
     let cfg: inputs::ConfigInput =
         inputs::ConfigInput::read_configs(vec!["tests/full/".to_string()], crate_name!()).unwrap();
-    println!("{:?}", Agent::new(&cfg.collecting));
+    println!("{:?}", Agent::new(&cfg.collecting.level));
 }

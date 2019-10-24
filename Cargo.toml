@@ -27,6 +27,8 @@ slog-scope = "~4.1"
 tempfile = "3.1.0"
 toml = "^0.5.1"
 reqwest = "0.9.22"
+bincode = "1.2.0"
+nix = "0.15.0"
 
 [package.metadata.release]
 sign-commit = true

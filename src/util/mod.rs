@@ -14,5 +14,8 @@
 
 //! utility functions
 
+mod clock;
 mod cmdline;
-pub use self::cmdline::*;
+
+pub(crate) use self::clock::*;
+pub(crate) use self::cmdline::*;

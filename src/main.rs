@@ -1,5 +1,6 @@
 //! Telemetry service for FCOS.
 
+extern crate nix;
 extern crate slog;
 #[macro_use]
 extern crate slog_scope;
@@ -22,7 +23,10 @@ use failure::{bail, Fallible, ResultExt};
 use log::LevelFilter;
 #[cfg(test)]
 use mockito;
+use nix::unistd::{fork, ForkResult};
 use serde_json::json;
+use std::thread;
+use std::time::Duration;
 
 /// Parse the reporting.enabled and collecting.level keys from config fragments,
 /// and check that the keys are set to a valid telemetry setting. If not,
@@ -61,6 +65,16 @@ fn send_data(agent: &agent::Agent) -> Fallible<()> {
 }
 
 fn main() -> Fallible<()> {
+    match fork() {
+        Ok(ForkResult::Parent { child, .. }) => {
+            println!("New child has pid: {}", child);
+            return Ok(());
+        }
+        Ok(ForkResult::Child) => (),
+        Err(_) => panic!("Fork failed in main()"),
+    };
+
+    // continues running in child process
     let matches = clap::app_from_crate!()
         .arg(
             Arg::with_name("v")
@@ -91,12 +105,58 @@ fn main() -> Fallible<()> {
         .context("failed to read configuration input")?;
 
     let is_enabled = check_config(&config)?;
+    let collecting_level: String = config.collecting.level;
 
     // Collect the data if enabled
     if is_enabled {
-        let agent = agent::Agent::new(&config.collecting)?;
-        // Send to the remote endpoint
-        send_data(&agent)?;
+        let collecting_level_copy_daily = collecting_level.clone();
+        let collecting_level_copy_monthly = collecting_level.clone();
+
+        // spawn thread for monitoring timestamp and sending report daily
+        let daily_thread = thread::spawn(move || -> Fallible<()> {
+            const DAILY_TIMESTAMP_FILE: &str = r#"/var/lib/fedora-coreos-pinger/timestamp_daily"#;
+            const SECS_PER_12_HOURS: Duration = Duration::from_secs(12 * 60 * 60);
+            loop {
+                let clock = util::Clock::read_timestamp(DAILY_TIMESTAMP_FILE)?;
+                if clock.if_need_update("daily")? {
+                    println!("Collecting and sending daily report...");
+                    let agent = agent::Agent::new(collecting_level_copy_daily.as_str())?;
+                    // Send to the remote endpoint
+                    send_data(&agent)?;
+                    // Update the timestamp
+                    clock.write_timestamp(DAILY_TIMESTAMP_FILE)?;
+                }
+                thread::sleep(SECS_PER_12_HOURS);
+            }
+        });
+
+        // spawn thread for monitoring timestamp and sending report monthly
+        let monthly_thread = thread::spawn(move || -> Fallible<()> {
+            const MONTHLY_TIMESTAMP_FILE: &str =
+                r#"/var/lib/fedora-coreos-pinger/timestamp_monthly"#;
+            const SECS_PER_15_DAYS: Duration = Duration::from_secs(15 * 24 * 60 * 60);
+            loop {
+                let clock = util::Clock::read_timestamp(MONTHLY_TIMESTAMP_FILE)?;
+                if clock.if_need_update("monthly")? {
+                    println!("Collecting and sending monthly report...");
+                    let agent = agent::Agent::new(collecting_level_copy_monthly.as_str())?;
+                    // Send to the remote endpoint
+                    send_data(&agent)?;
+                    // Update the timestamp
+                    clock.write_timestamp(MONTHLY_TIMESTAMP_FILE)?;
+                }
+                thread::sleep(SECS_PER_15_DAYS);
+            }
+        });
+
+        println!("Waiting for threads...");
+
+        daily_thread
+            .join()
+            .expect("Thread for daily reporting failed")?;
+        monthly_thread
+            .join()
+            .expect("Thread for monthly reporting failed")?;
     }
 
     Ok(())
@@ -115,7 +175,7 @@ fn test_send_data() {
 
     let cfg: inputs::ConfigInput =
         inputs::ConfigInput::read_configs(vec!["tests/full/".to_string()], crate_name!()).unwrap();
-    let agent = Agent::new(&cfg.collecting).unwrap();
+    let agent = Agent::new(&cfg.collecting.level).unwrap();
     send_data(&(agent)).unwrap();
 
     mock.assert();
