@@ -1,4 +1,5 @@
 use crate::agent::full::hardware;
+use crate::agent::full::container_runtime;
 use hardware::lsblk;
 use hardware::lscpu;
 use hardware::lsmem;
@@ -58,4 +59,10 @@ fn test_lsmem() {
 fn test_get_hardware_info() {
     let hw_struct = hardware::HardwareJSON::new();
     println!("{:?}", hw_struct.unwrap());
+}
+
+#[test]
+fn test_container_runtime() {
+    let rt = container_runtime::ContainerRT::new();
+    println!("{:?}", rt);
 }

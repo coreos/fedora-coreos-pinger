@@ -1,8 +1,8 @@
 //! Module to collect data under `full` level
 
-mod container_runtime;
-mod hardware;
-mod network;
+pub(crate) mod container_runtime;
+pub(crate) mod hardware;
+pub(crate) mod network;
 
 #[cfg(test)]
 mod mock_tests;

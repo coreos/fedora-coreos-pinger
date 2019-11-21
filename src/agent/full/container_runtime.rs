@@ -1,61 +1,49 @@
 //! Collect container runtime information
 //!
-//! Four container runtimes are monitored: docker, podman, crio, and systemd-nspawn
-//! and the number of containers running by each runtime is extracted as follows, correspondingly:
-//! `podman container ls | wc -l`
-//! `docker contaienr ls | wc -l`
-//! `crictl ps --output table | wc -l`
-//! `machinectl list | grep "container" | grep "systemd-nspawn" | wc -l`
+//! Currently four container runtimes are considered: docker, podman, systemd-nspawn, crio
+//! Following commands are called to check whether the runtime is running and
+//! the number of containers run by the specific runtime.
 //!
-//! And the system-wide information of each runtime is collected by running:
-//! `podman info --format json`
-//! `docker info --format '{{json .}}'`
-//! `crictl info`
+//! Podman:
+//!   - pgrep podman
+//!   - pgrep conmon
+//! Docker:
+//!   - pgrep dockerd
+//!   - pgrep containerd-shim
+//! Systemd-nspawn:
+//!   - pgrep systemd-nspawn
+//! Crio:
+//!   - pgrep crio
+//!   - pgrep crictl
 //!
-//! Note: Currenly the output from `info` commands are not stored as struct,
-//! instead they are parsed by serde_json from String into serde_json::Value.
+//! Note: none of the commands require root access
 
 use failure::{self, bail, Fallible};
 use serde::{Deserialize, Serialize};
-use serde_json;
-use std::cmp;
 use std::io::Write;
 use std::process;
 
-/// stores number of containers run by each container runtime
+/// wrapper struct for single container runtime
 #[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct ContainerCounts {
-    /// number of containers run by podman
-    /// extracted from `podman container ls | wc -l`
-    podman: i32,
-    /// number of containers run by docker
-    /// extracted from `docker container ls | wc -l`
-    docker: i32,
-    /// number of containers run by crio
-    /// extracted from `crictl ps --output table | wc -l`
-    crio: i32,
-    /// number of containers run by systemd-nspawn
-    /// where CLASS=container SERVICE=systemd-nspawn
-    /// extracted from `machinectl list | grep "container" | grep "systemd-nspawn" | wc -l`
-    systemd_nspawn: i32,
+pub(crate) struct ContainerRTInfo {
+    is_running: bool,
+    num_containers: i32,
 }
 
-/// stores system-wide information from container runtimes
-#[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct ContainerInfo {
-    /// output of `podman info --format json`
-    podman: Option<serde_json::Value>,
-    /// output of `docker info --format '{{json .}}'` if dockerd is running
-    docker: Option<serde_json::Value>,
-    /// output of `crictl info`, default format is json
-    crio: Option<serde_json::Value>,
-}
-
-/// wrapper struct for container counts and system-wide information
+/// struct for storing all container runtime info
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct ContainerRT {
-    counts: ContainerCounts,
-    info: ContainerInfo,
+    /// is_running: pgrep podman
+    /// num_containers: pgrep conmon | wc -l
+    podman: ContainerRTInfo,
+    /// is_running: pgrep dockerd
+    /// num_containers: pgrep containerd-shim | wc -l
+    docker: ContainerRTInfo,
+    /// is_running and num_containers: pgrep systemd-nspawn | wc -l
+    systemd_nspawn: ContainerRTInfo,
+    /// is_running: pgrep crio
+    /// num_containers: pgrep crictl | wc -l
+    crio: ContainerRTInfo,
 }
 
 /// function to run `${command} ${args}`
@@ -84,164 +72,85 @@ fn spawn_child(
     Ok(output)
 }
 
-/// return Error if the command failed
-fn check_status(cmd: &str, output: &process::Output) -> Fallible<()> {
-    if !(*output).status.success() {
-        bail!(
-            "{} failed:\n{}",
-            cmd,
-            String::from_utf8_lossy(&(*output).stderr)
-        );
-    }
-    Ok(())
-}
-
 impl ContainerRT {
     pub(crate) fn new() -> ContainerRT {
         ContainerRT {
-            counts: ContainerCounts {
-                podman: Self::rt_count_running("podman").unwrap_or(0),
-                docker: Self::rt_count_running("docker").unwrap_or(0),
-                crio: Self::rt_count_running("crictl").unwrap_or(0),
-                systemd_nspawn: Self::rt_count_running("machinectl").unwrap_or(0),
+            podman: ContainerRTInfo {
+                is_running: Self::rt_is_running("podman").unwrap_or(false),
+                num_containers: Self::rt_count_running("podman").unwrap_or(0),
             },
-            info: ContainerInfo {
-                podman: match Self::rt_fetch_info("podman") {
-                    Ok(result) => match serde_json::from_str(result.as_str()) {
-                        Ok(value) => Some(value),
-                        _ => None,
-                    },
-                    _ => None,
-                },
-                docker: match Self::rt_fetch_info("docker") {
-                    Ok(result) => match serde_json::from_str(result.as_str()) {
-                        Ok(value) => Some(value),
-                        _ => None,
-                    },
-                    _ => None,
-                },
-                crio: match Self::rt_fetch_info("crictl") {
-                    Ok(result) => match serde_json::from_str(result.as_str()) {
-                        Ok(value) => Some(value),
-                        _ => None,
-                    },
-                    _ => None,
-                },
+            docker: ContainerRTInfo {
+                is_running: Self::rt_is_running("docker").unwrap_or(false),
+                num_containers: Self::rt_count_running("docker").unwrap_or(0),
+            },
+            systemd_nspawn: ContainerRTInfo {
+                is_running: Self::rt_is_running("systemd_nspawn").unwrap_or(false),
+                num_containers: Self::rt_count_running("systemd_nspawn").unwrap_or(0),
+            },
+            crio: ContainerRTInfo {
+                is_running: Self::rt_is_running("crio").unwrap_or(false),
+                num_containers: Self::rt_count_running("crio").unwrap_or(0),
             },
         }
     }
 
-    /// counts the number of running containers/lines in the output using `wc -l`
-    fn rt_count_running(container_rt: &str) -> Fallible<i32> {
-        if !ContainerRT::rt_is_running(container_rt).unwrap_or(false) {
-            bail!("{} not running or not supported", container_rt);
-        }
-
-        let options = match container_rt {
-            "podman" => vec!["container", "ls"],
-            "docker" => vec!["container", "ls"],
-            "crictl" => vec!["ps", "--output", "table"],
-            "machinectl" => vec!["list"],
-            _ => bail!("container runtime {} is not supported", container_rt),
-        };
-
-        // run `${command} ${args}`
-        let mut output = run_command(container_rt, &options)?;
-        check_status(
-            format!("{} {}", container_rt, options.join(" ")).as_str(),
-            &output,
-        )?;
-        let mut std_out = String::from_utf8(output.stdout)?;
-
-        // for `machinectl` we need to count the number of running `container` that run by `systemd-nspawn` service
-        // i.e. run `grep container | grep systemd-nspawn` before `wc -l`
-        if let "machinectl" = container_rt {
-            output = spawn_child(std_out.as_str(), "grep", vec!["container"])?;
-            check_status(
-                format!("{} {}", container_rt, options.join(" ")).as_str(),
-                &output,
-            )?;
-            std_out = String::from_utf8(output.stdout)?;
-
-            output = spawn_child(std_out.as_str(), "grep", vec!["systemd-nspawn"])?;
-            check_status(
-                format!("{} {}", container_rt, options.join(" ")).as_str(),
-                &output,
-            )?;
-            std_out = String::from_utf8(output.stdout)?;
-        };
-
-        // count the number of (filtered) running containers
-        output = spawn_child(std_out.as_str(), "wc", vec!["-l"])?;
-        check_status(
-            format!("{} {}", container_rt, options.join(" ")).as_str(),
-            &output,
-        )?;
-        std_out = String::from_utf8(output.stdout)?
-            .trim()
-            .trim_end_matches("\n")
-            .to_string();;
-
-        let count: i32 = std_out.parse()?;
-        Ok(cmp::max(0, count - 1))
-    }
-
-    /// fetch the system-wide information from containter runtime (docker, podman, and crio)
-    fn rt_fetch_info(container_rt: &str) -> Fallible<String> {
-        if !ContainerRT::rt_is_running(container_rt).unwrap_or(false) {
-            bail!("{} not running or not supported", container_rt);
-        }
-
-        let options = match container_rt {
-            "podman" => vec!["info", "--format", "json"],
-            "docker" => vec!["info", "--format", "{{json .}}"],
-            "crictl" => vec!["info"],
-            _ => bail!("container runtime {} is not supported", container_rt),
-        };
-
-        // run `${command} ${args}`
-        let output = run_command(container_rt, &options)?;
-        check_status(
-            format!("{} {}", container_rt, options.join(" ")).as_str(),
-            &output,
-        )?;
-        let std_out = String::from_utf8(output.stdout)?;
-        Ok(std_out)
-    }
-
+    /// checks if the runtime is running
     fn rt_is_running(container_rt: &str) -> Fallible<bool> {
+        let command = "pgrep";
         match container_rt {
             "podman" => {
-                let command = "podman";
-                let options = vec!["info", "--format", "json"];
-                let result = run_command(command, &options)?;
-                check_status(
-                    format!("{} {}", command, options.join(" ")).as_str(),
-                    &result,
-                )?;
-                Ok(true)
+                let options = vec!["podman"];
+                let output = run_command(command, &options)?;
+                Ok(output.status.success())
             }
             "docker" => {
-                let command = "docker";
-                let options = vec!["info", "--format", "'{{json .}}'"];
-                let result = run_command(command, &options)?;
-                check_status(
-                    format!("{} {}", command, options.join(" ")).as_str(),
-                    &result,
-                )?;
-                Ok(true)
+                let options = vec!["dockerd"];
+                let output = run_command(command, &options)?;
+                Ok(output.status.success())
             }
-            "crictl" => {
-                let command = "crictl";
-                let options = vec!["info"];
-                let result = run_command(command, &options)?;
-                check_status(
-                    format!("{} {}", command, options.join(" ")).as_str(),
-                    &result,
-                )?;
-                Ok(true)
+            "systemd_nspawn" => {
+                let options = vec!["systemd-nspawn"];
+                let output = run_command(command, &options)?;
+                Ok(output.status.success())
+            }
+            "crio" => {
+                let options = vec!["crio"];
+                let output = run_command(command, &options)?;
+                Ok(output.status.success())
             }
             _ => Ok(false),
         }
+    }
+
+    /// counts the number of running containers
+    fn rt_count_running(container_rt: &str) -> Fallible<i32> {
+        let command = "pgrep";
+        let options = match container_rt {
+            "podman" => vec!["conmon"],
+            "docker" => vec!["containerd-shim"],
+            "systemd-nspawn" => vec!["systemd-nspawn"],
+            "crio" => vec!["crictl"],
+            _ => bail!("container runtime {} is not supported", container_rt),
+        };
+
+        // run `${command} ${args}`
+        let mut output = run_command(command, &options)?;
+        if !output.status.success() {
+            return Ok(0);
+        }
+        let mut std_out = String::from_utf8(output.stdout)?;
+
+        // count lines of previous output
+        output = spawn_child(std_out.as_str(), "wc", vec!["-l"])?;
+        if !output.status.success() {
+            return Ok(0);
+        }
+        std_out = String::from_utf8(output.stdout)?
+            .trim()
+            .trim_end_matches("\n")
+            .to_string();
+        let count: i32 = std_out.parse()?;
+
+        Ok(count)
     }
 }
