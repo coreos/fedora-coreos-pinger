@@ -114,7 +114,7 @@ fn main() -> Fallible<()> {
 
         // spawn thread for monitoring timestamp and sending report daily
         let daily_thread = thread::spawn(move || -> Fallible<()> {
-            const DAILY_TIMESTAMP_FILE: &str = r#"/var/lib/fedora-coreos-pinger/timestamp_daily"#;
+            const DAILY_TIMESTAMP_FILE: &str = r#"/var/log/fedora-coreos-pinger/timestamp_daily"#;
             const SECS_PER_12_HOURS: Duration = Duration::from_secs(12 * 60 * 60);
             loop {
                 let clock = util::Clock::read_timestamp(DAILY_TIMESTAMP_FILE)?;
@@ -133,7 +133,7 @@ fn main() -> Fallible<()> {
         // spawn thread for monitoring timestamp and sending report monthly
         let monthly_thread = thread::spawn(move || -> Fallible<()> {
             const MONTHLY_TIMESTAMP_FILE: &str =
-                r#"/var/lib/fedora-coreos-pinger/timestamp_monthly"#;
+                r#"/var/log/fedora-coreos-pinger/timestamp_monthly"#;
             const SECS_PER_15_DAYS: Duration = Duration::from_secs(15 * 24 * 60 * 60);
             loop {
                 let clock = util::Clock::read_timestamp(MONTHLY_TIMESTAMP_FILE)?;
