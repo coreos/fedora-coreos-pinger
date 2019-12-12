@@ -39,8 +39,8 @@ fn main() -> failure::Fallible<()> {
         3 | _ => LevelFilter::Trace,
     };
     env_logger::Builder::from_default_env()
-        .default_format_timestamp(false)
-        .default_format_module_path(false)
+        .format_timestamp(None)
+        .format_module_path(false)
         .filter(None, log_level)
         .try_init()?;
 
