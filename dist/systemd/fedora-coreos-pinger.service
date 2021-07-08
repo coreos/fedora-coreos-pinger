@@ -2,8 +2,6 @@
 Description=Telemetry service for Fedora CoreOS
 Documentation=https://github.com/coreos/fedora-coreos-pinger
 Before=systemd-user-sessions.service
-Wants=network-online.target
-After=network-online.target
 
 [Service]
 DynamicUser=yes
